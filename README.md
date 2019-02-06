@@ -1,6 +1,6 @@
 # Invoke Oracle Functions using the OCI Java SDK
 
-This example demonstrates how to invoke a function on Oracle Function using the (preview version of) the Oracle Cloud Infrastructure Java SDK
+This example demonstrates how to invoke a function on Oracle Functions using (preview version of) the Oracle Cloud Infrastructure Java SDK
 
 ## Pre-requisites
 
