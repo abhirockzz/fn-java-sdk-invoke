@@ -62,12 +62,13 @@ public class FnInvokeExample {
         String userId = System.getenv("USER_OCID");
         String fingerprint = System.getenv("PUBLIC_KEY_FINGERPRINT");
         String privateKeyFile = System.getenv("PRIVATE_KEY_LOCATION");
+        String passphrase = System.getenv("PASSPHRASE");
 
-        if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null) {
-            throw new Exception("Please ensure you have set the following envrionment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION");
+        if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null || passphrase == null) {
+            throw new Exception("Please ensure you have set the following envrionment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION, PASSPHRASE");
 
         }
-        FnInvokeExample test = new FnInvokeExample(tenantOCID, userId, fingerprint, privateKeyFile);
+        FnInvokeExample test = new FnInvokeExample(tenantOCID, userId, fingerprint, privateKeyFile, passphrase);
 
         String compartmentName = args[0];
         String appName = args[1];
@@ -80,13 +81,15 @@ public class FnInvokeExample {
     }
 
     /**
-     *
-     * @param tenantId OCID if your ROOT tenancy
-     * @param userId OCID of the user who has access to Oracle Functions service
-     * @param fingerprint Public key fingerprint of the user
-     * @param privateKeyFile Absolute path for private key file of the user
+     * Invokes a function
+     * 
+     * @param tenantId
+     * @param userId
+     * @param fingerprint
+     * @param privateKeyFile
+     * @param passphrase 
      */
-    public FnInvokeExample(String tenantId, String userId, String fingerprint, String privateKeyFile) {
+    public FnInvokeExample(String tenantId, String userId, String fingerprint, String privateKeyFile, String passphrase) {
 
         Supplier<InputStream> privateKeySupplier
                 = () -> {
@@ -102,6 +105,7 @@ public class FnInvokeExample {
                 .userId(userId)
                 .fingerprint(fingerprint)
                 .privateKeySupplier(privateKeySupplier)
+                .passPhrase(passphrase)
                 .region(Region.US_PHOENIX_1)
                 .build();
 

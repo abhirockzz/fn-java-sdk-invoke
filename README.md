@@ -45,6 +45,7 @@ Set environment variables
 	export USER_OCID=<OCID of the OCI user>
 	export PUBLIC_KEY_FINGERPRINT=<public key fingerprint>
 	export PRIVATE_KEY_LOCATION=<location of the private key on your machine>
+	export PASSPHRASE=<private key passphrase>
 
 e.g. 
 
@@ -52,6 +53,7 @@ e.g.
 	export USER_OCID=ocid1.user.oc1..aaaaaaaavz5efd7jwjjipbvm536plgylg7rfr53obvtghpi2vbg3qyrnrtfa
 	export PUBLIC_KEY_FINGERPRINT=42:42:5f:42:ca:a1:2e:58:d2:63:6a:af:42:d5:3d:42
 	export PRIVATE_KEY_LOCATION=/Users/foobar/oci_api_key.pem
+	export PASSPHRASE=4242
 
 
 ### You can now invoke your function!
