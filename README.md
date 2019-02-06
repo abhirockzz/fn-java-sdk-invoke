@@ -35,7 +35,7 @@ Confirm successful deployment
 
 ### Build the JAR and configure environment variables
 
-Change to the correct directory (where you clone the example) `cd fn-java-sdk-invoke` and then build the JAR using `mvn clean install`
+Change to the correct directory (where you cloned the example) `cd fn-java-sdk-invoke` and then build the JAR using `mvn clean install`
 
 Set environment variables
 
@@ -58,7 +58,7 @@ e.g.
 
 e.g.
 
-`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar goapp kehsihba workshop {\"name\":\"foobar\"}`
+`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mytestfunc mytestapp mycompartment {\"name\":\"foobar\"}`
 
 ## Troubleshooting
 
