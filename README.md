@@ -22,6 +22,8 @@ You need to install the OCI SDK JAR to your local Maven repository first
 
 ### Application and function creation
 
+> For details, please refer [this link](https://github.com/abhirockzz/oracle-functions-hello-worlds/blob/master/golang-hello-world.md)
+
 Create an application if you haven't already - you can use the Oracle Functions console or the Fn CLI e.g. `fn create app mytestapp --annotation oracle.com/oci/subnetIds=<SUBNETS_OCIDs>`
 
 > For the subsequent steps, let's assume your application name is `mytestapp`
@@ -54,11 +56,11 @@ e.g.
 
 ### You can now invoke your function!
 
-`java -jar target/<jar-name>.jar <function name> <app name> <compartment name> <function invoke payload>`
+`java -jar target/<jar-name>.jar <compartment name> <app name> <function name> <function invoke payload>`
 
 e.g.
 
-`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mytestfunc mytestapp mycompartment {\"name\":\"foobar\"}`
+`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment mytestapp mytestfunc {\"name\":\"foobar\"}`
 
 ## Troubleshooting
 

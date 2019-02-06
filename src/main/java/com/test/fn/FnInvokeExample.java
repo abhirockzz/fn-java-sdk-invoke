@@ -40,7 +40,7 @@ import javax.ws.rs.client.ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.SslConfigurator;
 
-public class FnInvokeClient {
+public class FnInvokeExample {
 
     /**
      * Oracle Functions service endpoint (us-phoenix-1 corresponds to phoenix
@@ -50,7 +50,7 @@ public class FnInvokeClient {
     static String tenantOCID = null;
     private SimpleAuthenticationDetailsProvider authDetails;
 
-    static String ERR_MSG = "Usage: java -jar <jar-name>.jar <function name> <app name> <compartment name> <function invoke payload>";
+    static String ERR_MSG = "Usage: java -jar <jar-name>.jar <compartment name> <app name> <function name> <function invoke payload>";
 
     public static void main(String[] args) throws Exception {
 
@@ -67,11 +67,11 @@ public class FnInvokeClient {
             throw new Exception("Please ensure you have set the following envrionment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION");
 
         }
-        FnInvokeClient test = new FnInvokeClient(tenantOCID, userId, fingerprint, privateKeyFile);
+        FnInvokeExample test = new FnInvokeExample(tenantOCID, userId, fingerprint, privateKeyFile);
 
-        String funcName = args[0];
+        String compartmentName = args[0];
         String appName = args[1];
-        String compartmentName = args[2];
+        String funcName = args[2];
         String invokePayload = args[3];
 
         System.out.println("Invoking function " + funcName + " from app " + appName + " in compartment " + compartmentName + " from tenancy " + tenantOCID);
@@ -86,7 +86,7 @@ public class FnInvokeClient {
      * @param fingerprint Public key fingerprint of the user
      * @param privateKeyFile Absolute path for private key file of the user
      */
-    public FnInvokeClient(String tenantId, String userId, String fingerprint, String privateKeyFile) {
+    public FnInvokeExample(String tenantId, String userId, String fingerprint, String privateKeyFile) {
 
         Supplier<InputStream> privateKeySupplier
                 = () -> {
@@ -243,36 +243,6 @@ public class FnInvokeClient {
             return appOCID;
 
         }
-    }
-
-    /**
-     * Invokes a function
-     *
-     * @param functionId OCID of the function
-     */
-    public void invokeFunction(String functionId) {
-        GetFunctionRequest gfr = GetFunctionRequest.builder().functionId(functionId).build();
-
-        try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
-            fnClient.setEndpoint(FAAS_ENDPOINT);
-
-            GetFunctionResponse function = fnClient.getFunction(gfr);
-            System.out.println("Invoking function endpoint - " + function.getFunction().getInvokeEndpoint());
-
-            fnClient.setEndpoint(function.getFunction().getInvokeEndpoint());
-            InvokeFunctionRequest ifr = InvokeFunctionRequest.builder().functionId(function.getFunction().getId())
-                    .invokeFunctionBody(StreamUtils.createByteArrayInputStream("{\"name\": \"kehsihba\"}".getBytes()))
-                    .build();
-            InvokeFunctionResponse resp = fnClient.invokeFunction(ifr);
-            try {
-                String respString = IOUtils.toString(resp.getInputStream(), StandardCharsets.UTF_8);
-                System.out.print("Response from function - " + respString + "\n");
-            } catch (IOException e) {
-                System.err.println(e);
-            }
-
-        }
-
     }
 
     public static class TrustAllConfigurator extends DefaultConfigurator {
