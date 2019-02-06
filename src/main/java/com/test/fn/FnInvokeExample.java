@@ -65,7 +65,7 @@ public class FnInvokeExample {
         String passphrase = System.getenv("PASSPHRASE");
 
         if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null || passphrase == null) {
-            throw new Exception("Please ensure you have set the following envrionment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION, PASSPHRASE");
+            throw new Exception("Please ensure you have set the following environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION, PASSPHRASE");
 
         }
         FnInvokeExample test = new FnInvokeExample(tenantOCID, userId, fingerprint, privateKeyFile, passphrase);
@@ -76,21 +76,20 @@ public class FnInvokeExample {
         String invokePayload = args[3];
 
         System.out.println("Invoking function " + funcName + " from app " + appName + " in compartment " + compartmentName + " from tenancy " + tenantOCID);
-        test.invokeFunctionByName(funcName, appName, compartmentName, invokePayload);
+        test.invokeFunction(funcName, appName, compartmentName, invokePayload);
 
     }
 
     /**
      * Invokes a function
-     * 
+     *
      * @param tenantId
      * @param userId
      * @param fingerprint
      * @param privateKeyFile
-     * @param passphrase 
+     * @param passphrase
      */
     public FnInvokeExample(String tenantId, String userId, String fingerprint, String privateKeyFile, String passphrase) {
-
         Supplier<InputStream> privateKeySupplier
                 = () -> {
                     try {
@@ -100,7 +99,7 @@ public class FnInvokeExample {
                     }
                 };
 
-        SimpleAuthenticationDetailsProvider authDetails = SimpleAuthenticationDetailsProvider.builder()
+        this.authDetails = SimpleAuthenticationDetailsProvider.builder()
                 .tenantId(tenantId)
                 .userId(userId)
                 .fingerprint(fingerprint)
@@ -109,19 +108,18 @@ public class FnInvokeExample {
                 .region(Region.US_PHOENIX_1)
                 .build();
 
-        this.authDetails = authDetails;
-
     }
 
     /**
-     *
+     * Invokes a function
+     * 
      * @param functionName
      * @param appName
      * @param compartmentName
      * @param payload
      * @throws Exception
      */
-    public void invokeFunctionByName(String functionName, String appName, String compartmentName, String payload) throws Exception {
+    public void invokeFunction(String functionName, String appName, String compartmentName, String payload) throws Exception {
 
         //get the App OCID first
         String appOCID = getAppOCID(appName, compartmentName, tenantOCID);
@@ -203,31 +201,31 @@ public class FnInvokeExample {
      */
     public String getAppOCID(String appName, String compartmentName, String tenantOCID) throws Exception {
 
+        System.out.println("Finding OCID for Compartment " + compartmentName);
+
+        //start by finding the compartment OCID from the name
+        ListCompartmentsRequest lcr = ListCompartmentsRequest.builder().compartmentId(tenantOCID).build();
+        ListCompartmentsResponse listCompartmentsResponse = null;
+        try (IdentityClient idc = new IdentityClient(authDetails)) {
+            listCompartmentsResponse = idc.listCompartments(lcr);
+        }
+        String compOCID = null;
+        for (Compartment comp : listCompartmentsResponse.getItems()) {
+            if (comp.getName().equals(compartmentName)) {
+                compOCID = comp.getId();
+                break;
+            }
+        }
+
+        if (compOCID == null) {
+            throw new Exception("Could not find compartment with  name " + compartmentName + " in tenancy " + tenantOCID);
+        }
+
+        System.out.println("Compartment OCID " + compOCID);
+
         System.out.println("Finding OCID for App " + appName);
         try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
             fnClient.setEndpoint(FAAS_ENDPOINT);
-
-            System.out.println("Finding OCID for Compartment " + compartmentName);
-
-            //start by finding the compartment OCID from the name
-            ListCompartmentsRequest lcr = ListCompartmentsRequest.builder().compartmentId(tenantOCID).build();
-            ListCompartmentsResponse listCompartmentsResponse = null;
-            try (IdentityClient idc = new IdentityClient(authDetails)) {
-                listCompartmentsResponse = idc.listCompartments(lcr);
-            }
-            String compOCID = null;
-            for (Compartment comp : listCompartmentsResponse.getItems()) {
-                if (comp.getName().equals(compartmentName)) {
-                    compOCID = comp.getId();
-                    break;
-                }
-            }
-
-            if (compOCID == null) {
-                throw new Exception("Could not find compartment with  name " + compartmentName + " in tenancy " + tenantOCID);
-            }
-
-            System.out.println("Compartment OCID " + compOCID);
 
             //find the application in a specific compartment
             ListApplicationsRequest req = ListApplicationsRequest.builder()
