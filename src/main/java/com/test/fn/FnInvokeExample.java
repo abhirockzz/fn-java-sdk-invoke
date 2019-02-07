@@ -65,7 +65,7 @@ public class FnInvokeExample {
         String passphrase = System.getenv("PASSPHRASE");
 
         if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null /*|| passphrase == null*/) {
-            throw new Exception("Please ensure you have set the following environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION, PASSPHRASE");
+            throw new Exception("Please ensure you have set the mandatory environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION");
 
         }
         FnInvokeExample test = new FnInvokeExample(tenantOCID, userId, fingerprint, privateKeyFile, passphrase);
@@ -82,7 +82,7 @@ public class FnInvokeExample {
     }
 
     /**
-     * Invokes a function
+     * sets up authentication provider
      *
      * @param tenantId
      * @param userId

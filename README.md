@@ -74,7 +74,7 @@ To simulate empty payload, just omit the last argument e.g. `java -jar target/fn
 
 ### If you fail to set the required environment variables like TENANT_OCID etc.
 
-You will see the following error - `Exception in thread "main" java.lang.Exception: Please ensure you have set the following envrionment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION`
+You will see the following error - `Exception in thread "main" java.lang.Exception: Please ensure you have set the mandatory environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION`
 
 ### If you do not provide required arguments i.e. function name etc.
 
