@@ -50,11 +50,11 @@ public class FnInvokeExample {
     static String tenantOCID = null;
     private SimpleAuthenticationDetailsProvider authDetails;
 
-    static String ERR_MSG = "Usage: java -jar <jar-name>.jar <compartment name> <app name> <function name> <function invoke payload>";
+    static String ERR_MSG = "Usage: java -jar <jar-name>.jar <compartment name> <app name> <function name> <(optional) function invoke payload>";
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length < 4) {
+        if (args.length < 3) {
             throw new Exception(ERR_MSG);
         }
 
@@ -64,7 +64,7 @@ public class FnInvokeExample {
         String privateKeyFile = System.getenv("PRIVATE_KEY_LOCATION");
         String passphrase = System.getenv("PASSPHRASE");
 
-        if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null || passphrase == null) {
+        if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null /*|| passphrase == null*/) {
             throw new Exception("Please ensure you have set the following environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION, PASSPHRASE");
 
         }
@@ -73,7 +73,8 @@ public class FnInvokeExample {
         String compartmentName = args[0];
         String appName = args[1];
         String funcName = args[2];
-        String invokePayload = args[3];
+        String invokePayload = args.length == 4 ? args[3] : "";
+        
 
         System.out.println("Invoking function " + funcName + " from app " + appName + " in compartment " + compartmentName + " from tenancy " + tenantOCID);
         test.invokeFunction(funcName, appName, compartmentName, invokePayload);
@@ -112,7 +113,7 @@ public class FnInvokeExample {
 
     /**
      * Invokes a function
-     * 
+     *
      * @param functionName
      * @param appName
      * @param compartmentName
@@ -124,30 +125,14 @@ public class FnInvokeExample {
         //get the App OCID first
         String appOCID = getAppOCID(appName, compartmentName, tenantOCID);
 
-        System.out.println("Finding OCID for function " + functionName);
+        //find the function OCID
+        String functionId = getFunctionOCID(appOCID, functionName);
 
-        //search for the function in the app
-        ListFunctionsRequest lfr = ListFunctionsRequest.builder().applicationId(appOCID).displayName(functionName).build();
+        //find the function invoke endpoint
+        String invokeEndpoint = getFunctionInvokeEndpoint(functionId);
 
         try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
-            fnClient.setEndpoint(FAAS_ENDPOINT);
 
-            ListFunctionsResponse lfresp = fnClient.listFunctions(lfr);
-
-            if (lfresp.getItems().isEmpty()) {
-                throw new Exception("Could not find function with  name " + functionName + " in application " + appName);
-
-            }
-            String functionId = lfresp.getItems().get(0).getId();
-            System.out.println("Function OCID " + functionId);
-
-            System.out.println("Finding invoke endpoint for function " + functionName);
-
-            //get function details
-            GetFunctionRequest gfr = GetFunctionRequest.builder().functionId(functionId).build();
-
-            GetFunctionResponse function = fnClient.getFunction(gfr);
-            String invokeEndpoint = function.getFunction().getInvokeEndpoint();
             System.out.println("Invoking function endpoint - " + invokeEndpoint + " with payload " + payload);
 
             //the client needs to use the function invoke endpoint
@@ -164,7 +149,7 @@ public class FnInvokeExample {
              * the response
              *
              */
-            InvokeFunctionRequest ifr = InvokeFunctionRequest.builder().functionId(function.getFunction().getId())
+            InvokeFunctionRequest ifr = InvokeFunctionRequest.builder().functionId(functionId)
                     .invokeFunctionBody(StreamUtils.createByteArrayInputStream(payload.getBytes()))
                     .build();
 
@@ -201,27 +186,8 @@ public class FnInvokeExample {
      */
     public String getAppOCID(String appName, String compartmentName, String tenantOCID) throws Exception {
 
-        System.out.println("Finding OCID for Compartment " + compartmentName);
-
         //start by finding the compartment OCID from the name
-        ListCompartmentsRequest lcr = ListCompartmentsRequest.builder().compartmentId(tenantOCID).build();
-        ListCompartmentsResponse listCompartmentsResponse = null;
-        try (IdentityClient idc = new IdentityClient(authDetails)) {
-            listCompartmentsResponse = idc.listCompartments(lcr);
-        }
-        String compOCID = null;
-        for (Compartment comp : listCompartmentsResponse.getItems()) {
-            if (comp.getName().equals(compartmentName)) {
-                compOCID = comp.getId();
-                break;
-            }
-        }
-
-        if (compOCID == null) {
-            throw new Exception("Could not find compartment with  name " + compartmentName + " in tenancy " + tenantOCID);
-        }
-
-        System.out.println("Compartment OCID " + compOCID);
+        String compOCID = getCompartmentOCID(compartmentName, tenantOCID);
 
         System.out.println("Finding OCID for App " + appName);
         try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
@@ -244,6 +210,90 @@ public class FnInvokeExample {
 
             return appOCID;
 
+        }
+    }
+
+    /**
+     * Gets compartment OCID
+     *
+     * @param compartmentName
+     * @param tenantOCID
+     * @return compartment OCID
+     * @throws Exception
+     */
+    public String getCompartmentOCID(String compartmentName, String tenantOCID) throws Exception {
+        System.out.println("Finding OCID for Compartment " + compartmentName);
+
+        ListCompartmentsRequest lcr = ListCompartmentsRequest.builder().compartmentId(tenantOCID).build();
+        ListCompartmentsResponse listCompartmentsResponse = null;
+        try (IdentityClient idc = new IdentityClient(authDetails)) {
+            listCompartmentsResponse = idc.listCompartments(lcr);
+        }
+        String compOCID = null;
+        for (Compartment comp : listCompartmentsResponse.getItems()) {
+            if (comp.getName().equals(compartmentName)) {
+                compOCID = comp.getId();
+                break;
+            }
+        }
+
+        if (compOCID == null) {
+            throw new Exception("Could not find compartment with  name " + compartmentName + " in tenancy " + tenantOCID);
+        }
+        System.out.println("Compartment OCID " + compOCID);
+
+        return compOCID;
+    }
+
+    /**
+     * Get function OCID
+     * 
+     * @param appOCID
+     * @param functionName
+     * @return function OCID
+     * @throws Exception 
+     */
+    public String getFunctionOCID(String appOCID, String functionName) throws Exception {
+
+        System.out.println("Finding OCID for function " + functionName);
+
+        //search for the function in the app
+        ListFunctionsRequest lfr = ListFunctionsRequest.builder().applicationId(appOCID).displayName(functionName).build();
+
+        try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
+            fnClient.setEndpoint(FAAS_ENDPOINT);
+
+            ListFunctionsResponse lfresp = fnClient.listFunctions(lfr);
+
+            if (lfresp.getItems().isEmpty()) {
+                throw new Exception("Could not find function with  name " + functionName + " for application " + appOCID);
+
+            }
+            String functionId = lfresp.getItems().get(0).getId();
+            System.out.println("Function OCID " + functionId);
+
+            return functionId;
+        }
+    }
+
+    /**
+     * Get function invoke endpoint
+     * 
+     * @param functionId
+     * @return function invoke endpoint
+     */
+    public String getFunctionInvokeEndpoint(String functionId) {
+        try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
+            fnClient.setEndpoint(FAAS_ENDPOINT);
+
+            System.out.println("Finding invoke endpoint for function " + functionId);
+
+            //get function details
+            GetFunctionRequest gfr = GetFunctionRequest.builder().functionId(functionId).build();
+
+            GetFunctionResponse function = fnClient.getFunction(gfr);
+            String invokeEndpoint = function.getFunction().getInvokeEndpoint();
+            return invokeEndpoint;
         }
     }
 

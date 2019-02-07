@@ -47,6 +47,8 @@ Set environment variables
 	export PRIVATE_KEY_LOCATION=<location of the private key on your machine>
 	export PASSPHRASE=<private key passphrase>
 
+> please note that `PASSPHRASE` is optional i.e. only required if your private key has one
+
 e.g. 
 
 	export TENANT_OCID=ocid1.tenancy.oc1..aaaaaaaaydrjd77otncda2xn7qrv7l3hqnd3zxn2u4siwdhniibwfv4wwhtz
@@ -58,11 +60,15 @@ e.g.
 
 ### You can now invoke your function!
 
-`java -jar target/<jar-name>.jar <compartment name> <app name> <function name> <function invoke payload>`
+`java -jar target/<jar-name>.jar <compartment name> <app name> <function name> <(optional) function invoke payload>`
+
+> the function payload is optional, you can leave it blank (empty payload)
 
 e.g.
 
 `java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment mytestapp mytestfunc {\"name\":\"foobar\"}`
+
+To simulate empty payload, just omit the last argument e.g. `java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment mytestapp mytestfunc`
 
 ## Troubleshooting
 
