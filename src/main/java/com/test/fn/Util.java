@@ -2,10 +2,9 @@ package com.test.fn;
 
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.functions.FunctionsClient;
-import com.oracle.bmc.functions.requests.GetFunctionRequest;
+import com.oracle.bmc.functions.model.FunctionSummary;
 import com.oracle.bmc.functions.requests.ListApplicationsRequest;
 import com.oracle.bmc.functions.requests.ListFunctionsRequest;
-import com.oracle.bmc.functions.responses.GetFunctionResponse;
 import com.oracle.bmc.functions.responses.ListApplicationsResponse;
 import com.oracle.bmc.functions.responses.ListFunctionsResponse;
 import com.oracle.bmc.http.DefaultConfigurator;
@@ -110,14 +109,14 @@ public class Util {
     }
 
     /**
-     * Get function OCID
+     * Gets function details in form of a FunctionSummary object
      *
      * @param appOCID
      * @param functionName
-     * @return function OCID
+     * @return FunctionSummary object
      * @throws Exception
      */
-    public String getFunctionOCID(String appOCID, String functionName) throws Exception {
+    public FunctionSummary getFunction(String appOCID, String functionName) throws Exception {
 
         System.out.println("Finding OCID for function " + functionName);
 
@@ -133,35 +132,13 @@ public class Util {
                 throw new Exception("Could not find function with  name " + functionName + " for application " + appOCID);
 
             }
-            String functionId = lfresp.getItems().get(0).getId();
-            System.out.println("Function OCID " + functionId);
+            FunctionSummary function = lfresp.getItems().get(0);
+            System.out.println("Found Function with OCID " + function.getId());
 
-            return functionId;
+            return function;
         }
     }
 
-    /**
-     * Get function invoke endpoint
-     *
-     * @param functionId
-     * @return function invoke endpoint
-     */
-    public String getFunctionInvokeEndpoint(String functionId) {
-        try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator())) {
-            fnClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
-
-            System.out.println("Finding invoke endpoint for function " + functionId);
-
-            //get function details
-            GetFunctionRequest gfr = GetFunctionRequest.builder().functionId(functionId).build();
-
-            GetFunctionResponse function = fnClient.getFunction(gfr);
-            String invokeEndpoint = function.getFunction().getInvokeEndpoint();
-            return invokeEndpoint;
-        }
-    }
-    
-    
     public static class TrustAllConfigurator extends DefaultConfigurator {
 
         @Override

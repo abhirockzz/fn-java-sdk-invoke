@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.oracle.bmc.Region;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.functions.FunctionsClient;
+import com.oracle.bmc.functions.model.FunctionSummary;
 import com.oracle.bmc.functions.requests.InvokeFunctionRequest;
 import com.oracle.bmc.functions.responses.InvokeFunctionResponse;
 import com.oracle.bmc.util.StreamUtils;
@@ -24,9 +25,9 @@ public class FnInvokeExample {
      * region where the service is available)
      */
     public static final String FAAS_ENDPOINT = "https://functions.us-phoenix-1.oraclecloud.com/";
-    static String tenantOCID = null;
-    private SimpleAuthenticationDetailsProvider authDetails;
-    private Util ociUtil;
+    private static String tenantOCID = null;
+    private final SimpleAuthenticationDetailsProvider authDetails;
+    private final Util ociUtil;
 
     static String ERR_MSG = "Usage: java -jar <jar-name>.jar <compartment name> <app name> <function name> <(optional) function invoke payload>";
 
@@ -104,11 +105,10 @@ public class FnInvokeExample {
         //get the App OCID first
         String appOCID = ociUtil.getAppOCID(appName, compartmentName, tenantOCID);
 
-        //find the function OCID
-        String functionId = ociUtil.getFunctionOCID(appOCID, functionName);
-
-        //find the function invoke endpoint
-        String invokeEndpoint = ociUtil.getFunctionInvokeEndpoint(functionId);
+        //find the function details
+        FunctionSummary function = ociUtil.getFunction(appOCID, functionName);        
+        String functionId = function.getId();
+        String invokeEndpoint = function.getInvokeEndpoint();
 
         try (FunctionsClient fnClient = new FunctionsClient(authDetails, null, new Util.TrustAllConfigurator())) {
 
