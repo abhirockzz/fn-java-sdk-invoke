@@ -108,7 +108,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
                             <mainClass>
-                                com.test.fn.FnInvokeExample
+                                com.test.fn.MainClient
                             </mainClass>
                         </manifest>
                     </archive>
