@@ -115,7 +115,8 @@ public class FnInvokeExample {
              * For a Java boilerplate function, you can simply pass a string
              * (not JSON) e.g. foobar as the input and expect Hello foobar! as
              * the response
-             *
+             * 
+             * see README for note on how to send binary payload
              */
             InvokeFunctionRequest ifr = InvokeFunctionRequest.builder().functionId(functionId)
                     .invokeFunctionBody(StreamUtils.createByteArrayInputStream(payload.getBytes()))

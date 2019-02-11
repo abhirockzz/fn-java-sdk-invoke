@@ -110,6 +110,25 @@ e.g. without payload:
 
 `java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment helloworld-app helloworld-func-go`
 
+
+## What if my function needs input in binary form ?
+
+This example demonstrates how to invoke a boilerplate function which accepts (an optional) string payload (JSON data). But, it is possible to send binary payload as well.
+
+You can use this Tensorflow based function as an example to explore the possibility of invoking a function using binary content - https://github.com/abhirockzz/fn-hello-tensorflow. This function expects the image data (in binary form) as an input and returns what object that image resembles along with the percentage accuracy
+
+If you were to deploy the above function and use the Fn CLI, the command would something like this - `cat /home.foo/cat.jpeg | fn invoke fn-tensorflow-app classify`. In this case, the `cat.jpeg` image is being passed as an input to the function. The programmatic (using Java SDK) equivalent of this would look something like the below snippet
+
+	InvokeFunctionRequest invokeFunctionRequest = 
+	
+	InvokeFunctionRequest.builder()
+	                     .functionId(function.getFunction().getId())
+	                     .invokeFunctionBody(StreamUtils.toInputStream(new File("/home.foo/cat.jpeg")))
+	                     .build();
+	               
+
+Pay attention to the following line `invokeFunctionBody(StreamUtils.toInputStream(new File("/home.foo/cat.jpeg")))`. The `toInputStream` helper method from `com.oracle.bmc.util.StreamUtils` is being used to send the binary contents of file `/home.foo/cat.jpeg`
+
 ## Troubleshooting
 
 ### If you fail to set the required environment variables like `TENANT_OCID` etc.
