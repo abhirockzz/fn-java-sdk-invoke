@@ -47,7 +47,7 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
 
 1. Download and unzip the preview version of the OCI Java SDK
 
-   `unzip oci-java-sdk-preview.zip`
+   `unzip oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3.zip`
 
 2. Set the name of the SDK JAR as an environment variable
 
@@ -55,7 +55,7 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
 
 3. Change into the correct directory
 
-   `cd oci-java-sdk-preview`
+   `cd oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3`
 
 4. Install the JAR to local Maven repo
 
@@ -86,7 +86,7 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
    export PASSPHRASE=<private key passphrase>
    ```
    
-   e.g. 
+   e.g.
 
    ```shell
    export TENANT_OCID=ocid1.tenancy.oc1..aaaaaaaaydrjd77otncda2xn7qrv7l3hqnd3zxn2u4siwdhniibwfv4wwhtz
