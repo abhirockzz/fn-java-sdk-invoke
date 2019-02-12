@@ -45,11 +45,11 @@ Create a function using [Go Hello World Function](https://github.com/abhirockzz/
 
 You need to install the OCI SDK JAR to your local Maven repository first.
 
-Download the preview version of the OCI Java SDK
+Download the preview version of the OCI Java SDK from the location 
 
 Unzip - 
 
-`unzip oci-java-sdk-preview.zip`
+`unzip oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3.zip`
 
 Set the name of the SDK JAR as an environment variable - 
 
@@ -57,7 +57,7 @@ Set the name of the SDK JAR as an environment variable -
 
 Change into the correct directory - 
 
-`cd oci-java-sdk-preview`
+`cd oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3`
 
 Install the JAR to local Maven repo - 
 
