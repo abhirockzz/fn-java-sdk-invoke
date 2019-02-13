@@ -144,7 +144,7 @@ Pay attention to the following line `invokeFunctionBody(StreamUtils.toInputStrea
    
    a) Comment the code inside getCompartmentOCID() and pass the compartment OCID
    
-   b) Use the following code in FnInvokeExample.java line #195 - "with compartmentIdInSubtree == true and AccessLevel==Accessible"
+   b) Use the following code in FnInvokeExample.java line #194 - "with compartmentIdInSubtree == true and AccessLevel==Accessible"
    
 ```java
             ListCompartmentsRequest lcr = ListCompartmentsRequest.builder()
