@@ -29,72 +29,77 @@ This example does not assume the presence of an OCI config file on the machine f
 
 ## Pre-requisites
 
-Start by cloning this repository - 
+1. Clone this repository
 
-`git clone https://github.com/abhirockzz/fn-java-sdk-invoke`
+   `git clone https://github.com/abhirockzz/fn-java-sdk-invoke`
 
-Install latest Fn CLI - 
+2. Install the latest Fn CLI
 
-`curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh`
+   `curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh`
 
-A function that you want to invoke - 
+3. Create a function to invoke
 
-Create a function using [Go Hello World Function](https://github.com/abhirockzz/oracle-functions-hello-worlds/blob/master/golang-hello-world.md)
+   Create a function using [Go Hello World Function](https://github.com/abhirockzz/oracle-functions-hello-worlds/blob/master/golang-hello-world.md)
 
 ### Install preview OCI Java SDK
 
-You need to install the OCI SDK JAR to your local Maven repository first.
+As this example uses Maven, you need to install the OCI SDK JAR to your local Maven repository.
 
-Download the preview version of the OCI Java SDK from the location 
+1. Download and unzip the preview version of the OCI Java SDK
 
-Unzip - 
+   `unzip oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3.zip`
 
-`unzip oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3.zip`
+2. Set the name of the SDK JAR as an environment variable
 
-Set the name of the SDK JAR as an environment variable - 
+   `export OCI_SDK_JAR=oci-java-sdk-full-1.3.6-preview1-SNAPSHOT.jar`
 
-`export OCI_SDK_JAR=oci-java-sdk-full-1.3.6-preview1-SNAPSHOT.jar`
+3. Change into the correct directory
 
-Change into the correct directory - 
+   `cd oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3`
 
-`cd oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3`
+4. Install the JAR to local Maven repo
 
-Install the JAR to local Maven repo - 
-
-`mvn install:install-file -Dfile=lib/$OCI_SDK_JAR -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.3.6-preview1-20190125.203329-3 -Dpackaging=jar`
+   `mvn install:install-file -Dfile=lib/$OCI_SDK_JAR -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.3.6-preview1-20190125.203329-3 -Dpackaging=jar`
 
 ### Build the JAR and configure environment variables
 
-Change to the correct directory where you cloned the example: 
+1. Change to the correct directory where you cloned the example: 
 
-`cd fn-java-sdk-invoke` 
+   `cd fn-java-sdk-invoke` 
 
-Then build the JAR using 
+2. Then build the JAR using 
 
-`mvn clean install`
+   `mvn clean install`
 
-Set environment variables
+3. Set environment variables
 
-	export TENANT_OCID=<OCID of your tenancy>
-	export USER_OCID=<OCID of the OCI user>
-	export PUBLIC_KEY_FINGERPRINT=<public key fingerprint>
-	export PRIVATE_KEY_LOCATION=<location of the private key on your machine>
+   ```shell
+   export TENANT_OCID=<OCID of your tenancy>
+   export USER_OCID=<OCID of the OCI user>
+   export PUBLIC_KEY_FINGERPRINT=<public key fingerprint>
+   export PRIVATE_KEY_LOCATION=<location of the private key on your machine>
+   ```
 
-> please note that `PASSPHRASE` is optional i.e. only required if your private key has one
+   > please note that `PASSPHRASE` is optional i.e. only required if your private key has one
 
-	export PASSPHRASE=<private key passphrase>
+   ```shell
+   export PASSPHRASE=<private key passphrase>
+   ```
+   
+   e.g.
 
-e.g. 
+   ```shell
+   export TENANT_OCID=ocid1.tenancy.oc1..aaaaaaaaydrjd77otncda2xn7qrv7l3hqnd3zxn2u4siwdhniibwfv4wwhtz
+   export USER_OCID=ocid1.user.oc1..aaaaaaaavz5efd7jwjjipbvm536plgylg7rfr53obvtghpi2vbg3qyrnrtfa
+   export PUBLIC_KEY_FINGERPRINT=42:42:5f:42:ca:a1:2e:58:d2:63:6a:af:42:d5:3d:42
+   export PRIVATE_KEY_LOCATION=/Users/foobar/oci_api_key.pem
+   ```
 
-	export TENANT_OCID=ocid1.tenancy.oc1..aaaaaaaaydrjd77otncda2xn7qrv7l3hqnd3zxn2u4siwdhniibwfv4wwhtz
-	export USER_OCID=ocid1.user.oc1..aaaaaaaavz5efd7jwjjipbvm536plgylg7rfr53obvtghpi2vbg3qyrnrtfa
-	export PUBLIC_KEY_FINGERPRINT=42:42:5f:42:ca:a1:2e:58:d2:63:6a:af:42:d5:3d:42
-	export PRIVATE_KEY_LOCATION=/Users/foobar/oci_api_key.pem
-	
-> and only if your private key has a passphrase:
+   > and only if your private key has a passphrase:
 
-	export PASSPHRASE=4242
-
+   ```shell
+   export PASSPHRASE=4242
+   ```
 
 ## You can now invoke your function!
 
@@ -117,15 +122,16 @@ This example demonstrates how to invoke a boilerplate function which accepts (an
 
 You can use this Tensorflow based function as an example to explore the possibility of invoking a function using binary content - https://github.com/abhirockzz/fn-hello-tensorflow. This function expects the image data (in binary form) as an input and returns what object that image resembles along with the percentage accuracy
 
-If you were to deploy the above function and invoke it using Fn CLI, the command would something like this - `cat /home/foo/cat.jpeg | fn invoke fn-tensorflow-app classify`. In this case, the `cat.jpeg` image is being passed as an input to the function. The programmatic (using Java SDK) equivalent of this would look something like the below snippet, where the function invocation request (`InvokeFunctionRequest`) is being built along with the binary input (image file content)
+If you were to deploy the Tensorflow function, the command to invoke it using Fn CLI would be something like this - `cat /home/foo/cat.jpeg | fn invoke fn-tensorflow-app classify`. In this case, the `cat.jpeg` image is being passed as an input to the function. The programmatic (using Java SDK) equivalent of this would look something like the below snippet, where the function invocation request (`InvokeFunctionRequest`) is being built along with the binary input (image file content)
 
-	InvokeFunctionRequest invokeFunctionRequest = 
-	
-	InvokeFunctionRequest.builder()
-	                     .functionId(function.getFunction().getId())
-	                     .invokeFunctionBody(StreamUtils.toInputStream(new File("/home/foo/cat.jpeg")))
-	                     .build();
-	               
+```java
+InvokeFunctionRequest invokeFunctionRequest = 
+
+InvokeFunctionRequest.builder()
+                     .functionId(function.getFunction().getId())
+                     .invokeFunctionBody(StreamUtils.toInputStream(new File("/home/foo/cat.jpeg")))
+                     .build();
+```
 
 Pay attention to the following line `invokeFunctionBody(StreamUtils.toInputStream(new File("/home/foo/cat.jpeg")))`. The `toInputStream` helper method from `com.oracle.bmc.util.StreamUtils` is being used to send the binary contents of file `/home/foo/cat.jpeg`
 

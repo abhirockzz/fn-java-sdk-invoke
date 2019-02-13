@@ -108,12 +108,12 @@ public class FnInvokeExample {
 
             /**
              * This is an example of sending a JSON payload as an input to the
-             * function - valid for boilerplate functions for python, node, go,
-             * ruby functions. The expected result is - {"message":"Hello
-             * foobar"}
+             * function - valid for "fn init --runtime ..." generated boilerplate 
+             * functions for python, node, go, and ruby. The expected result is 
+             * {"message":"Hello foobar"}
              *
              * For a Java boilerplate function, you can simply pass a string
-             * (not JSON) e.g. foobar as the input and expect Hello foobar! as
+             * (not JSON) e.g., foobar as the input and expect Hello foobar! as
              * the response
              * 
              * see README for note on how to send binary payload
