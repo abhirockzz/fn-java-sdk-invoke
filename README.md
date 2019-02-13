@@ -29,15 +29,11 @@ This example does not assume the presence of an OCI config file on the machine f
 
 ## Pre-requisites
 
-1. Clone this repository
-
-   `git clone https://github.com/abhirockzz/fn-java-sdk-invoke`
-
-2. Install the latest Fn CLI
+1. Install/update the Fn CLI
 
    `curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh`
 
-3. Create a function to invoke
+2. Create a function to invoke
 
    Create a function using [Go Hello World Function](https://github.com/abhirockzz/oracle-functions-hello-worlds/blob/master/golang-hello-world.md)
 
@@ -63,15 +59,19 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
 
 ### Build the JAR and configure environment variables
 
-1. Change to the correct directory where you cloned the example: 
+1. Clone this repository
+
+   `git clone https://github.com/abhirockzz/fn-java-sdk-invoke`
+
+2. Change to the correct directory where you cloned the example: 
 
    `cd fn-java-sdk-invoke` 
 
-2. Then build the JAR using 
+3. Then build the JAR using 
 
    `mvn clean install`
 
-3. Set environment variables
+4. Set environment variables
 
    ```shell
    export TENANT_OCID=<OCID of your tenancy>
