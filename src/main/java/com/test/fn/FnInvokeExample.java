@@ -77,7 +77,11 @@ public class FnInvokeExample {
                 .region(Region.US_PHOENIX_1)
                 .build();
 
-        this.fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator());
+        // The OCI APIs, including Functions, produce JSON bodies that need Jackson features to be deserialized. We use
+        // a ClientConfigurator to make sure that we set Jackson as a serialization provider in case external code (e.g.
+        // a framework like glassfish) has overridden the default JSON deserializer.
+        this.fnClient = new FunctionsClient(authDetails, null, new JsonSerializationConfigurator());
+
         this.identityClient = new IdentityClient(authDetails);
     }
 
@@ -108,14 +112,14 @@ public class FnInvokeExample {
 
             /**
              * This is an example of sending a JSON payload as an input to the
-             * function - valid for "fn init --runtime ..." generated boilerplate 
-             * functions for python, node, go, and ruby. The expected result is 
+             * function - valid for "fn init --runtime ..." generated boilerplate
+             * functions for python, node, go, and ruby. The expected result is
              * {"message":"Hello foobar"}
              *
              * For a Java boilerplate function, you can simply pass a string
              * (not JSON) e.g., foobar as the input and expect Hello foobar! as
              * the response
-             * 
+             *
              * see README for note on how to send binary payload
              */
             InvokeFunctionRequest ifr = InvokeFunctionRequest.builder().functionId(functionId)
@@ -156,7 +160,7 @@ public class FnInvokeExample {
         //start by finding the compartment OCID from the name
         String compOCID = getCompartmentOCID(compartmentName, tenantOCID);
         System.out.println("Finding OCID for App " + appName);
-        
+
         fnClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
 
         //find the application in a specific compartment
@@ -242,42 +246,14 @@ public class FnInvokeExample {
         return function;
     }
 
-    public static class TrustAllConfigurator extends DefaultConfigurator {
+    public static class JsonSerializationConfigurator extends DefaultConfigurator {
 
         @Override
-        protected void setSslContext(ClientBuilder builder) {
-            SSLContext sslContext
-                    = SslConfigurator.newInstance(true).securityProtocol("TLSv1.2").createSSLContext();
-            builder.sslContext(sslContext);
-            try {
-                sslContext.init(
-                        null,
-                        new TrustManager[]{
-                            new X509TrustManager() {
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-
-                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        }
-
-                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        }
-                    }
-                        },
-                        new SecureRandom());
-            } catch (KeyManagementException e) {
-                System.err.println(e);
-            }
-
-            builder.hostnameVerifier(
-                    new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+        public void customizeClient(Client client) {
+            super.customizeClient(client);
+            client.property("jersey.config.jsonFeature", "JacksonFeature");
         }
+
     }
 
 }
