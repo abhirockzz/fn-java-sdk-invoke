@@ -180,7 +180,12 @@ public class FnInvokeExample {
         String compOCID = null;
         ListCompartmentsResponse listCompartmentsResponse = null;
         try {
-            ListCompartmentsRequest lcr = ListCompartmentsRequest.builder().compartmentId(tenantOCID).build();
+            ListCompartmentsRequest lcr = ListCompartmentsRequest.builder()
+                                                                 .compartmentId(tenantOCID)
+                                                                 .accessLevel(ListCompartmentsRequest.AccessLevel.Accessible)
+                                                                 .compartmentIdInSubtree(Boolean.TRUE)
+                                                                 .build();
+            
             listCompartmentsResponse = identityClient.listCompartments(lcr);
 
             for (Compartment comp : listCompartmentsResponse.getItems()) {
