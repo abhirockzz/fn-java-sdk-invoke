@@ -11,7 +11,6 @@ import com.oracle.bmc.functions.requests.ListFunctionsRequest;
 import com.oracle.bmc.functions.responses.InvokeFunctionResponse;
 import com.oracle.bmc.functions.responses.ListApplicationsResponse;
 import com.oracle.bmc.functions.responses.ListFunctionsResponse;
-import com.oracle.bmc.http.DefaultConfigurator;
 import com.oracle.bmc.identity.IdentityClient;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.identity.requests.ListCompartmentsRequest;
@@ -23,18 +22,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.SslConfigurator;
 
 public class FnInvokeExample {
 
@@ -77,7 +66,7 @@ public class FnInvokeExample {
                 .region(Region.US_PHOENIX_1)
                 .build();
 
-        this.fnClient = new FunctionsClient(authDetails, null, new TrustAllConfigurator());
+        this.fnClient = new FunctionsClient(authDetails);
         this.identityClient = new IdentityClient(authDetails);
     }
 
@@ -240,44 +229,6 @@ public class FnInvokeExample {
         System.out.println("Found Function with OCID " + function.getId());
 
         return function;
-    }
-
-    public static class TrustAllConfigurator extends DefaultConfigurator {
-
-        @Override
-        protected void setSslContext(ClientBuilder builder) {
-            SSLContext sslContext
-                    = SslConfigurator.newInstance(true).securityProtocol("TLSv1.2").createSSLContext();
-            builder.sslContext(sslContext);
-            try {
-                sslContext.init(
-                        null,
-                        new TrustManager[]{
-                            new X509TrustManager() {
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-
-                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        }
-
-                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        }
-                    }
-                        },
-                        new SecureRandom());
-            } catch (KeyManagementException e) {
-                System.err.println(e);
-            }
-
-            builder.hostnameVerifier(
-                    new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
-        }
     }
 
 }
