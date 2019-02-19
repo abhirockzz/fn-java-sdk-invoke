@@ -136,25 +136,6 @@ InvokeFunctionRequest.builder()
 Pay attention to the following line `invokeFunctionBody(StreamUtils.toInputStream(new File("/home/foo/cat.jpeg")))`. The `toInputStream` helper method from `com.oracle.bmc.util.StreamUtils` is being used to send the binary contents of file `/home/foo/cat.jpeg`
 
 
-## Known Issues
-
-1. Unable to find the compartment OCID of nested compartments - See https://github.com/abhirockzz/fn-java-sdk-invoke/issues/3
-
-   Please use one of the following solutions till we fix the issue: 
-   
-   a) Comment the code inside getCompartmentOCID() and pass the compartment OCID
-   
-   b) Use the following code in FnInvokeExample.java line #194 - "with compartmentIdInSubtree == true and AccessLevel==Accessible"
-   
-```java
-            ListCompartmentsRequest lcr = ListCompartmentsRequest.builder()
-                    .compartmentId(tenantOCID)
-                    .accessLevel(ListCompartmentsRequest.AccessLevel.Accessible)
-                    .compartmentIdInSubtree(Boolean.TRUE)
-                    .build();
-```
-
-
 ## Troubleshooting
 
 1. If you fail to set the required environment variables like `TENANT_OCID` etc.
