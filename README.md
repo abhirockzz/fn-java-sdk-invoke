@@ -43,19 +43,19 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
 
 1. Download and unzip the preview version of the OCI Java SDK
 
-   `unzip oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3.zip`
+   `unzip oci-java-sdk-dist-1.4.1-preview1-20190222.223049-5.zip`
 
 2. Set the name of the SDK JAR as an environment variable
 
-   `export OCI_SDK_JAR=oci-java-sdk-full-1.3.6-preview1-SNAPSHOT.jar`
+   `export OCI_SDK_JAR=oci-java-sdk-full-1.4.1-preview1-SNAPSHOT.jar`
 
 3. Change into the correct directory
 
-   `cd oci-java-sdk-dist-1.3.6-preview1-20190125.203329-3`
+   `cd oci-java-sdk-dist-1.4.1-preview1-20190222.223049-5`
 
 4. Install the JAR to local Maven repo
 
-   `mvn install:install-file -Dfile=lib/$OCI_SDK_JAR -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.3.6-preview1-20190125.203329-3 -Dpackaging=jar`
+   `mvn install:install-file -Dfile=lib/$OCI_SDK_JAR -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.4.1-preview1-20190222.223049-5 -Dpackaging=jar`
 
 ### Build the JAR and configure environment variables
 

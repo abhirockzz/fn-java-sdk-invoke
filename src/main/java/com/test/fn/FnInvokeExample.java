@@ -3,7 +3,8 @@ package com.test.fn;
 import com.google.common.base.Supplier;
 import com.oracle.bmc.Region;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
-import com.oracle.bmc.functions.FunctionsClient;
+import com.oracle.bmc.functions.FunctionsInvokeClient;
+import com.oracle.bmc.functions.FunctionsManagementClient;
 import com.oracle.bmc.functions.model.FunctionSummary;
 import com.oracle.bmc.functions.requests.InvokeFunctionRequest;
 import com.oracle.bmc.functions.requests.ListApplicationsRequest;
@@ -31,11 +32,11 @@ public class FnInvokeExample {
      * Oracle Functions service endpoint (us-phoenix-1 corresponds to phoenix
      * region where the service is available)
      */
-    public static final String FAAS_ENDPOINT = "https://functions.us-phoenix-1.oraclecloud.com/";
+    //public static final String FAAS_ENDPOINT = "https://functions.us-phoenix-1.oraclecloud.com/";
     private String tenantOCID = null;
-    private final FunctionsClient fnClient;
+    private final FunctionsInvokeClient fnInvokeClient;
+    private final FunctionsManagementClient fnMgtClient;
     private final IdentityClient identityClient;
-
 
     /**
      * sets up authentication provider
@@ -63,10 +64,12 @@ public class FnInvokeExample {
                 .fingerprint(fingerprint)
                 .privateKeySupplier(privateKeySupplier)
                 .passPhrase(passphrase)
-                .region(Region.US_PHOENIX_1)
+                .region(Region.US_PHOENIX_1) 
                 .build();
 
-        this.fnClient = new FunctionsClient(authDetails);
+        this.fnInvokeClient = new FunctionsInvokeClient(authDetails);
+        this.fnMgtClient = new FunctionsManagementClient(authDetails);
+        fnMgtClient.setRegion(Region.US_PHOENIX_1); //Oracle Functions currently only in phoenix
         this.identityClient = new IdentityClient(authDetails);
     }
 
@@ -93,18 +96,18 @@ public class FnInvokeExample {
             System.out.println("Invoking function endpoint - " + invokeEndpoint + " with payload " + payload);
 
             //the client needs to use the function invoke endpoint
-            fnClient.setEndpoint(invokeEndpoint);
+            fnInvokeClient.setEndpoint(invokeEndpoint);
 
             /**
              * This is an example of sending a JSON payload as an input to the
-             * function - valid for "fn init --runtime ..." generated boilerplate 
-             * functions for python, node, go, and ruby. The expected result is 
-             * {"message":"Hello foobar"}
+             * function - valid for "fn init --runtime ..." generated
+             * boilerplate functions for python, node, go, and ruby. The
+             * expected result is {"message":"Hello foobar"}
              *
              * For a Java boilerplate function, you can simply pass a string
              * (not JSON) e.g., foobar as the input and expect Hello foobar! as
              * the response
-             * 
+             *
              * see README for note on how to send binary payload
              */
             InvokeFunctionRequest ifr = InvokeFunctionRequest.builder().functionId(functionId)
@@ -112,7 +115,7 @@ public class FnInvokeExample {
                     .build();
 
             //actual function invocation
-            InvokeFunctionResponse resp = fnClient.invokeFunction(ifr);
+            InvokeFunctionResponse resp = fnInvokeClient.invokeFunction(ifr);
 
             //parse the response
             /**
@@ -123,7 +126,8 @@ public class FnInvokeExample {
         } catch (Exception e) {
             throw e;
         } finally {
-            fnClient.close();
+            fnInvokeClient.close();
+            fnMgtClient.close();
         }
 
     }
@@ -145,15 +149,14 @@ public class FnInvokeExample {
         //start by finding the compartment OCID from the name
         String compOCID = getCompartmentOCID(compartmentName, tenantOCID);
         System.out.println("Finding OCID for App " + appName);
-        
-        fnClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
 
+        //fnMgtClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
         //find the application in a specific compartment
         ListApplicationsRequest req = ListApplicationsRequest.builder()
                 .displayName(appName)
                 .compartmentId(compOCID)
                 .build();
-        ListApplicationsResponse resp = fnClient.listApplications(req);
+        ListApplicationsResponse resp = fnMgtClient.listApplications(req);
 
         if (resp.getItems().isEmpty()) {
             throw new Exception("Could not find App with  name " + appName + " in compartment " + compartmentName);
@@ -181,11 +184,11 @@ public class FnInvokeExample {
         ListCompartmentsResponse listCompartmentsResponse = null;
         try {
             ListCompartmentsRequest lcr = ListCompartmentsRequest.builder()
-                                                                 .compartmentId(tenantOCID)
-                                                                 .accessLevel(ListCompartmentsRequest.AccessLevel.Accessible)
-                                                                 .compartmentIdInSubtree(Boolean.TRUE)
-                                                                 .build();
-            
+                    .compartmentId(tenantOCID)
+                    .accessLevel(ListCompartmentsRequest.AccessLevel.Accessible)
+                    .compartmentIdInSubtree(Boolean.TRUE)
+                    .build();
+
             listCompartmentsResponse = identityClient.listCompartments(lcr);
 
             for (Compartment comp : listCompartmentsResponse.getItems()) {
@@ -222,9 +225,8 @@ public class FnInvokeExample {
         //search for the function in the app
         ListFunctionsRequest lfr = ListFunctionsRequest.builder().applicationId(appOCID).displayName(functionName).build();
 
-        fnClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
-
-        ListFunctionsResponse lfresp = fnClient.listFunctions(lfr);
+        //fnMgtClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
+        ListFunctionsResponse lfresp = fnMgtClient.listFunctions(lfr);
 
         if (lfresp.getItems().isEmpty()) {
             throw new Exception("Could not find function with  name " + functionName + " for application " + appOCID);
