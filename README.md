@@ -5,25 +5,32 @@ This example demonstrates how to invoke a function on Oracle Functions using (pr
 
 ## Introduction
 
-To be specifc, it shows how you can invoke a function by its name given that you also provide the application name (to which the function belongs), the OCI compartment (for which your Oracle Functions service is configured) and the OCID of your tenancy
+To be specifc, it shows how you can invoke a function by its name given that you also provide the application name (to which the function belongs), the OCI compartment (for which your Oracle Functions service is configured) and the OCID of your tenancy.
 
-The function invocation API requires two key inputs - the function OCID and the function invoke endpoint. The most important function related API object is the `FunctionsClient`
+OCI SDK exposes two endpoints for Oracle Functions
+
+- `FunctionsManagementClient` - for CRUD operations e.g. creating applications, listing functions etc.
+- `FunctionsInvokeClient` - only required for invoking a function
+
+Both these client objects as well as the `IdentityClient` are initialized in the constructor (details in the **Authentication** section)
+
+The `FunctionsInvokeClient` API requires two key inputs - the function OCID and the function invoke endpoint.
 
 We start off with the initial information i.e. function name, application name, the compartment name and the tenant OCID
 
 - The first step extracts the Compartment OCID from the name using the `IdentityClient.listCompartments` method - it looks for compartments in the tenancy and matches the one with the provided name
-- The compartment OCID is then used to find the Application OCID from the name using `FunctionsClient.listApplications`
-- Once we have the application OCID, the function information (in the form of a `FunctionSummary` object) is extracted using `FunctionsClient.listFunctions` - this allows us to get both the function OCID as well as its invoke endpoint
+- The compartment OCID is then used to find the Application OCID from the name using `FunctionsManagementClient.listApplications`
+- Once we have the application OCID, the function information (in the form of a `FunctionSummary` object) is extracted using `FunctionsManagementClient.listFunctions` - this allows us to get both the function OCID as well as its invoke endpoint
 
 Now that we have the function OCID and invoke enpoint at our disposal
 
 - we build the `InvokeFunctionRequest` object with the function OCID and the (optional) payload which we want to send to our function, and,
-- call `setEndpoint` in our `FunctionsClient` object to point it towards the invoke endpoint
+- call `setEndpoint` in our `FunctionsInvokeClient` object to point it towards the invoke endpoint
 - finally, we call `invokeFunction` and extract the String response from the `InvokeFunctionResponse` object
 
 ### Authentication
 
-The client program needs to authenticate to OCI before being able to make service calls. The standard OCI authenitcation is used, which accepts the following inputs (details below) - tenant OCID, user OCID, fingerprint, private key and passphrase (optional). These details are required to instantiate a `SimpleAuthenticationDetailsProvider` object which is subsequently used by the service client objects (`FunctionsClient`, `IdentityClient`). 
+The client program needs to authenticate to OCI before being able to make service calls. The standard OCI authenitcation is used, which accepts the following inputs (details below) - tenant OCID, user OCID, fingerprint, private key and passphrase (optional). These details are required to instantiate a `SimpleAuthenticationDetailsProvider` object which is subsequently used by the service client objects (`FunctionsInvokeClient`, `FunctionsManagementClient`, `IdentityClient`). 
 
 This example does not assume the presence of an OCI config file on the machine from where this is being executed. However, if you have one present as per the standard OCI practices i.e. a config file in your home directory, you can use the `ConfigFileAuthenticationDetailsProvider` for convenience
 
