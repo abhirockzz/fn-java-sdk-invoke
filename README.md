@@ -20,7 +20,7 @@ The `FunctionsInvokeClient` API requires the function OCID and the function invo
 - The compartment OCID is then used to find the Application OCID from the name using `FunctionsManagementClient.listApplications`
 - Once we have the application OCID, the function information (in the form of a `FunctionSummary` object) is extracted using `FunctionsManagementClient.listFunctions` - this allows us to get both the function OCID as well as its invoke endpoint
 
-The key thing to note here is that the function ID and its invoke endpoint will not change unless you delete the function (or the application it's a part of). As a result you do not need to repeat the above mentioned flow of API calls - the funtion ID and its invoke endpoint can be derived once and then **cached** in-memory using a `HashMap` or using an external data store
+The key thing to note here is that the function ID and its invoke endpoint will not change unless you delete the function (or the application it's a part of). As a result you do not need to repeat the above mentioned flow of API calls - the funtion ID and its invoke endpoint can be derived once and then **cached** in-memory using a (e.g. using `HashMap`) or using an external data store
 
 Now that we have the function OCID and invoke enpoint at our disposal
 
