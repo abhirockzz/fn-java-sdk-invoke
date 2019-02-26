@@ -14,13 +14,13 @@ OCI SDK exposes two endpoints for Oracle Functions
 
 Both these client objects as well as the `IdentityClient` are initialized in the constructor (details in the **Authentication** section)
 
-The `FunctionsInvokeClient` API requires two key inputs - the function OCID and the function invoke endpoint.
+The `FunctionsInvokeClient` API requires the function OCID and the function invoke endpoint which needs to be extracted using the following - function name, application name, the compartment name and the tenant OCID. This involves making multiple API calls
 
-We start off with the initial information i.e. function name, application name, the compartment name and the tenant OCID
-
-- The first step extracts the Compartment OCID from the name using the `IdentityClient.listCompartments` method - it looks for compartments in the tenancy and matches the one with the provided name
+- The first step is to extract the Compartment OCID from the name using the `IdentityClient.listCompartments` method - it looks for compartments in the tenancy and matches the one with the provided name
 - The compartment OCID is then used to find the Application OCID from the name using `FunctionsManagementClient.listApplications`
 - Once we have the application OCID, the function information (in the form of a `FunctionSummary` object) is extracted using `FunctionsManagementClient.listFunctions` - this allows us to get both the function OCID as well as its invoke endpoint
+
+The key thing to note here is that the function ID and its invoke endpoint will not change unless you delete the function (or the application it's a part of). As a result you do not need to repeat the above mentioned flow of API calls - the funtion ID and its invoke endpoint can be derived once and then **cached** in-memory using a `HashMap` or using an external data store
 
 Now that we have the function OCID and invoke enpoint at our disposal
 

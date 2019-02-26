@@ -4,18 +4,8 @@ import com.google.common.base.Supplier;
 import com.oracle.bmc.Region;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.functions.FunctionsInvokeClient;
-import com.oracle.bmc.functions.FunctionsManagementClient;
-import com.oracle.bmc.functions.model.FunctionSummary;
 import com.oracle.bmc.functions.requests.InvokeFunctionRequest;
-import com.oracle.bmc.functions.requests.ListApplicationsRequest;
-import com.oracle.bmc.functions.requests.ListFunctionsRequest;
 import com.oracle.bmc.functions.responses.InvokeFunctionResponse;
-import com.oracle.bmc.functions.responses.ListApplicationsResponse;
-import com.oracle.bmc.functions.responses.ListFunctionsResponse;
-import com.oracle.bmc.identity.IdentityClient;
-import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.bmc.identity.requests.ListCompartmentsRequest;
-import com.oracle.bmc.identity.responses.ListCompartmentsResponse;
 import com.oracle.bmc.util.StreamUtils;
 
 import java.io.File;
@@ -28,18 +18,11 @@ import org.apache.commons.io.IOUtils;
 
 public class FnInvokeExample {
 
-    /**
-     * Oracle Functions service endpoint (us-phoenix-1 corresponds to phoenix
-     * region where the service is available)
-     */
-    //public static final String FAAS_ENDPOINT = "https://functions.us-phoenix-1.oraclecloud.com/";
     private String tenantOCID = null;
     private final FunctionsInvokeClient fnInvokeClient;
-    private final FunctionsManagementClient fnMgtClient;
-    private final IdentityClient identityClient;
 
     /**
-     * sets up authentication provider
+     * Initializes FunctionsInvokeClient
      *
      * @param tenantId
      * @param userId
@@ -64,35 +47,22 @@ public class FnInvokeExample {
                 .fingerprint(fingerprint)
                 .privateKeySupplier(privateKeySupplier)
                 .passPhrase(passphrase)
-                .region(Region.US_PHOENIX_1) 
+                .region(Region.US_PHOENIX_1)
                 .build();
 
         this.fnInvokeClient = new FunctionsInvokeClient(authDetails);
-        this.fnMgtClient = new FunctionsManagementClient(authDetails);
-        fnMgtClient.setRegion(Region.US_PHOENIX_1); //Oracle Functions currently only in phoenix
-        this.identityClient = new IdentityClient(authDetails);
     }
 
     /**
      * Invokes a function
-     *
-     * @param functionName
-     * @param appName
-     * @param compartmentName
+     * 
+     * @param functionId
+     * @param invokeEndpoint
      * @param payload
      * @throws Exception
      */
-    public void invokeFunction(String functionName, String appName, String compartmentName, String payload) throws Exception {
-
+    public void invokeFunction(String functionId, String invokeEndpoint, String payload) throws Exception {
         try {
-            //get the App OCID first
-            String appOCID = getAppOCID(appName, compartmentName, tenantOCID);
-
-            //find the function details
-            FunctionSummary function = getFunction(appOCID, functionName);
-            String functionId = function.getId();
-            String invokeEndpoint = function.getInvokeEndpoint();
-
             System.out.println("Invoking function endpoint - " + invokeEndpoint + " with payload " + payload);
 
             //the client needs to use the function invoke endpoint
@@ -117,125 +87,13 @@ public class FnInvokeExample {
             //actual function invocation
             InvokeFunctionResponse resp = fnInvokeClient.invokeFunction(ifr);
 
-            //parse the response
-            /**
-             * the example below simply reads a String response.
-             */
+            //parse the response - this example below simply reads a String response.
             String respString = IOUtils.toString(resp.getInputStream(), StandardCharsets.UTF_8);
             System.out.print("Response from function - " + respString + "\n");
         } catch (Exception e) {
             throw e;
         } finally {
             fnInvokeClient.close();
-            fnMgtClient.close();
         }
-
     }
-
-    /**
-     * Returns application OCID for an application
-     *
-     * @param appName Name of the application whose OCID is required
-     * @param compartmentName Name of the compartment where the Oracle Functions
-     * service is configured
-     * @param tenantOCID OCID of the tenancy i.e. root compartment
-     *
-     * @return Application OCID
-     *
-     * @throws Exception
-     */
-    public String getAppOCID(String appName, String compartmentName, String tenantOCID) throws Exception {
-
-        //start by finding the compartment OCID from the name
-        String compOCID = getCompartmentOCID(compartmentName, tenantOCID);
-        System.out.println("Finding OCID for App " + appName);
-
-        //fnMgtClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
-        //find the application in a specific compartment
-        ListApplicationsRequest req = ListApplicationsRequest.builder()
-                .displayName(appName)
-                .compartmentId(compOCID)
-                .build();
-        ListApplicationsResponse resp = fnMgtClient.listApplications(req);
-
-        if (resp.getItems().isEmpty()) {
-            throw new Exception("Could not find App with  name " + appName + " in compartment " + compartmentName);
-
-        }
-        String appOCID = resp.getItems().get(0).getId();
-
-        System.out.println("Application OCID " + appOCID);
-
-        return appOCID;
-
-    }
-
-    /**
-     * Gets compartment OCID
-     *
-     * @param compartmentName
-     * @param tenantOCID
-     * @return compartment OCID
-     * @throws Exception
-     */
-    public String getCompartmentOCID(String compartmentName, String tenantOCID) throws Exception {
-        System.out.println("Finding OCID for Compartment " + compartmentName);
-        String compOCID = null;
-        ListCompartmentsResponse listCompartmentsResponse = null;
-        try {
-            ListCompartmentsRequest lcr = ListCompartmentsRequest.builder()
-                    .compartmentId(tenantOCID)
-                    .accessLevel(ListCompartmentsRequest.AccessLevel.Accessible)
-                    .compartmentIdInSubtree(Boolean.TRUE)
-                    .build();
-
-            listCompartmentsResponse = identityClient.listCompartments(lcr);
-
-            for (Compartment comp : listCompartmentsResponse.getItems()) {
-                if (comp.getName().equals(compartmentName)) {
-                    compOCID = comp.getId();
-                    break;
-                }
-            }
-
-            if (compOCID == null) {
-                throw new Exception("Could not find compartment with  name " + compartmentName + " in tenancy " + tenantOCID);
-            }
-            System.out.println("Compartment OCID " + compOCID);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            identityClient.close();
-        }
-        return compOCID;
-    }
-
-    /**
-     * Gets function details in form of a FunctionSummary object
-     *
-     * @param appOCID
-     * @param functionName
-     * @return FunctionSummary object
-     * @throws Exception
-     */
-    public FunctionSummary getFunction(String appOCID, String functionName) throws Exception {
-
-        System.out.println("Finding OCID for function " + functionName);
-
-        //search for the function in the app
-        ListFunctionsRequest lfr = ListFunctionsRequest.builder().applicationId(appOCID).displayName(functionName).build();
-
-        //fnMgtClient.setEndpoint(FnInvokeExample.FAAS_ENDPOINT);
-        ListFunctionsResponse lfresp = fnMgtClient.listFunctions(lfr);
-
-        if (lfresp.getItems().isEmpty()) {
-            throw new Exception("Could not find function with  name " + functionName + " for application " + appOCID);
-
-        }
-        FunctionSummary function = lfresp.getItems().get(0);
-        System.out.println("Found Function with OCID " + function.getId());
-
-        return function;
-    }
-
 }
