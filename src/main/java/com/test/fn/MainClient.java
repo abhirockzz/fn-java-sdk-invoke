@@ -13,7 +13,6 @@ public class MainClient {
 
 	static String ERR_MSG = "Usage: java -jar <jar-name>.jar <compartment name> <app name> <function name> <(optional) function invoke payload>";
 
-
 	public static void main(String[] args) throws Exception {
 
 		if (args.length < 3) {
@@ -37,16 +36,15 @@ public class MainClient {
 		String funcName = args[2];
 		String invokePayload = args.length == 4 ? args[3] : "";
 
-		try (
-			FunctionsUtil functionsUtil = new FunctionsUtil(tenantOCID, userId, fingerprint, privateKeyFile, passphrase);
-		){	
+		try (FunctionsUtil functionsUtil = new FunctionsUtil(tenantOCID, userId, fingerprint, privateKeyFile,
+				passphrase);) {
 			Compartment compartment = functionsUtil.getCompartment(compartmentName);
 			ApplicationSummary application = functionsUtil.getApplication(compartment, appName);
 			FunctionSummary function = functionsUtil.getFunction(application, funcName);
 			System.err.println("Invoking function " + funcName + " from app " + appName + " in compartment "
 					+ compartmentName + " from tenancy " + tenantOCID);
 			functionsUtil.invokeFunction(function, invokePayload);
-		} 
+		}
 
 	}
 

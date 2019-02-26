@@ -37,48 +37,41 @@ import org.apache.commons.io.IOUtils;
  */
 public class FunctionsUtil implements AutoCloseable {
 
-    private String tenantOCID = null;
-    private final FunctionsManagementClient fnMgtClient;
-    private final IdentityClient identityClient;
+	private String tenantOCID = null;
+	private final FunctionsManagementClient fnMgtClient;
+	private final IdentityClient identityClient;
 	private FunctionsInvokeClient fnInvokeClient;
 
-    /**
-     * Initializes FunctionsManagementClient and IdentityClient
-     * 
-     * @param tenantId
-     * @param userId
-     * @param fingerprint
-     * @param privateKeyFile
-     * @param passphrase 
-     */
-    public FunctionsUtil(String tenantId, String userId, String fingerprint, String privateKeyFile, String passphrase) {
-        this.tenantOCID = tenantId;
-        Supplier<InputStream> privateKeySupplier
-                = () -> {
-                    try {
-                        return new FileInputStream(new File(privateKeyFile));
-                    } catch (FileNotFoundException e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                };
+	/**
+	 * Initializes FunctionsManagementClient and IdentityClient
+	 * 
+	 * @param tenantId
+	 * @param userId
+	 * @param fingerprint
+	 * @param privateKeyFile
+	 * @param passphrase
+	 */
+	public FunctionsUtil(String tenantId, String userId, String fingerprint, String privateKeyFile, String passphrase) {
+		this.tenantOCID = tenantId;
+		Supplier<InputStream> privateKeySupplier = () -> {
+			try {
+				return new FileInputStream(new File(privateKeyFile));
+			} catch (FileNotFoundException e) {
+				throw new IllegalArgumentException(e);
+			}
+		};
 
-        SimpleAuthenticationDetailsProvider authDetails = SimpleAuthenticationDetailsProvider.builder()
-                .tenantId(tenantId)
-                .userId(userId)
-                .fingerprint(fingerprint)
-                .privateKeySupplier(privateKeySupplier)
-                .passPhrase(passphrase)
-                .region(Region.US_PHOENIX_1)
-                .build();
+		SimpleAuthenticationDetailsProvider authDetails = SimpleAuthenticationDetailsProvider.builder()
+				.tenantId(tenantId).userId(userId).fingerprint(fingerprint).privateKeySupplier(privateKeySupplier)
+				.passPhrase(passphrase).region(Region.US_PHOENIX_1).build();
 
-        this.fnMgtClient = new FunctionsManagementClient(authDetails);
-        this.fnMgtClient.setRegion(Region.US_PHOENIX_1); //Oracle Functions currently only in phoenix
-        this.identityClient = new IdentityClient(authDetails);
+		this.fnMgtClient = new FunctionsManagementClient(authDetails);
+		this.fnMgtClient.setRegion(Region.US_PHOENIX_1); // Oracle Functions currently only in phoenix
+		this.identityClient = new IdentityClient(authDetails);
 		this.fnInvokeClient = new FunctionsInvokeClient(authDetails);
 
-    }
+	}
 
- 
 	/**
 	 * Invokes a function with the given payload
 	 * 
@@ -89,7 +82,8 @@ public class FunctionsUtil implements AutoCloseable {
 	 */
 	public void invokeFunction(FunctionSummary function, String payload) throws Exception {
 		try {
-			System.err.println("Invoking function endpoint - " + function.getInvokeEndpoint() + " with payload " + payload);
+			System.err.println(
+					"Invoking function endpoint - " + function.getInvokeEndpoint() + " with payload " + payload);
 
 			// the client needs to use the function invoke endpoint
 			this.fnInvokeClient.setEndpoint(function.getInvokeEndpoint());
@@ -121,135 +115,136 @@ public class FunctionsUtil implements AutoCloseable {
 	}
 
 	/**
-     * Gets Function information.  This is an expensive operation and the results should be cached. 
-     * 
-     * @param compartmentName
-     * @param appName
-     * @param functionName
-     * @return
-     * @throws Exception 
-     */
-    public FunctionSummary getFunction(String compartmentName, String appName, String functionName) throws Exception {
-        Compartment compartment = getCompartment(compartmentName);
-        return getFunction(compartment, appName, functionName);
-    }
-
+	 * Gets Function information. This is an expensive operation and the results
+	 * should be cached.
+	 * 
+	 * @param compartmentName
+	 * @param appName
+	 * @param functionName
+	 * @return
+	 * @throws Exception
+	 */
+	public FunctionSummary getFunction(String compartmentName, String appName, String functionName) throws Exception {
+		Compartment compartment = getCompartment(compartmentName);
+		return getFunction(compartment, appName, functionName);
+	}
 
 	/**
-     * Gets Function information.  This is an expensive operation and the results should be cached. 
-     * 
-     * @param compartment
-     * @param appName
-     * @param functionName
-     * @return
-     * @throws Exception 
-     */
+	 * Gets Function information. This is an expensive operation and the results
+	 * should be cached.
+	 * 
+	 * @param compartment
+	 * @param appName
+	 * @param functionName
+	 * @return
+	 * @throws Exception
+	 */
 	public FunctionSummary getFunction(Compartment compartment, String appName, String functionName) throws Exception {
 		ApplicationSummary application = getApplication(compartment, appName);
-        return getFunction(application, functionName);
+		return getFunction(application, functionName);
 	}
-
 
 	/**
-     * Gets Function information.  This is an expensive operation and the results should be cached. 
-     * 
-     * @param application
+	 * Gets Function information. This is an expensive operation and the results
+	 * should be cached.
+	 * 
+	 * @param application
 	 * @param functionName
-     * @return
-     * @throws Exception 
-     */
+	 * @return
+	 * @throws Exception
+	 */
 	public FunctionSummary getFunction(ApplicationSummary application, String functionName) throws Exception {
-        ListFunctionsRequest lfr = ListFunctionsRequest.builder().applicationId(application.getId()).displayName(functionName).build();
+		ListFunctionsRequest lfr = ListFunctionsRequest.builder().applicationId(application.getId())
+				.displayName(functionName).build();
 
-        ListFunctionsResponse lfresp = fnMgtClient.listFunctions(lfr);
+		ListFunctionsResponse lfresp = fnMgtClient.listFunctions(lfr);
 
-        if (lfresp.getItems().isEmpty()) {
-            throw new Exception("Could not find function with name " + functionName + " in application " + application.getDisplayName());
-        }
-        
-        FunctionSummary function = lfresp.getItems().get(0);
-        System.err.println("Found Function with OCID " + function.getId());
+		if (lfresp.getItems().isEmpty()) {
+			throw new Exception("Could not find function with name " + functionName + " in application "
+					+ application.getDisplayName());
+		}
 
-        return function;
+		FunctionSummary function = lfresp.getItems().get(0);
+		System.err.println("Found Function with OCID " + function.getId());
+
+		return function;
 	}
- 
-    /**
-     * Gets application info
-     * 
-     * @param appName
-     * @param compartmentName
-     * @return
-     * @throws Exception 
-     */
-    public ApplicationSummary getApplication(String compartmentName, String appName) throws Exception {
-    	Compartment compartment = getCompartment(compartmentName);
-    	return getApplication(compartment, appName);
-    }
-    	
-    /**
-     * Gets application info
-     * @param appName
-     * @param compartmentName
-     * 
-     * @return
-     * @throws Exception 
-     */
-    public ApplicationSummary getApplication(Compartment compartment, String appName) throws Exception {
 
-         //find the application in a specific compartment
-        ListApplicationsRequest req = ListApplicationsRequest.builder()
-                .displayName(appName)
-                .compartmentId(compartment.getId())
-                .build();
-        ListApplicationsResponse resp = fnMgtClient.listApplications(req);
+	/**
+	 * Gets application info
+	 * 
+	 * @param appName
+	 * @param compartmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public ApplicationSummary getApplication(String compartmentName, String appName) throws Exception {
+		Compartment compartment = getCompartment(compartmentName);
+		return getApplication(compartment, appName);
+	}
 
-        if (resp.getItems().isEmpty()) {
-            throw new Exception("Could not find application with name " + appName + " in compartment " + compartment.getName());
-        }
-        ApplicationSummary application = resp.getItems().get(0);       
-        return application;
-    }
+	/**
+	 * Gets application info
+	 * 
+	 * @param appName
+	 * @param compartmentName
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public ApplicationSummary getApplication(Compartment compartment, String appName) throws Exception {
 
-    /**
-     * Gets compartment OCID
-     * 
-     * @param compartmentName
-     * @return
-     * @throws Exception 
-     */
-    public Compartment getCompartment(String compartmentName) throws Exception {
-        ListCompartmentsResponse listCompartmentsResponse = null;
-        ListCompartmentsRequest lcr = ListCompartmentsRequest.builder()
-                .compartmentId(tenantOCID)
-                .accessLevel(ListCompartmentsRequest.AccessLevel.Accessible)
-                .compartmentIdInSubtree(Boolean.TRUE)
-                .build();
+		// find the application in a specific compartment
+		ListApplicationsRequest req = ListApplicationsRequest.builder().displayName(appName)
+				.compartmentId(compartment.getId()).build();
+		ListApplicationsResponse resp = fnMgtClient.listApplications(req);
 
-        listCompartmentsResponse = identityClient.listCompartments(lcr);
+		if (resp.getItems().isEmpty()) {
+			throw new Exception(
+					"Could not find application with name " + appName + " in compartment " + compartment.getName());
+		}
+		ApplicationSummary application = resp.getItems().get(0);
+		return application;
+	}
 
-        for (Compartment comp : listCompartmentsResponse.getItems()) {
-            if (comp.getName().equals(compartmentName)) {
-                return comp;
-            }
-        }
-        throw new Exception("Could not find compartment with name " + compartmentName + " in tenancy " + tenantOCID);
-    }
+	/**
+	 * Gets compartment OCID
+	 * 
+	 * @param compartmentName
+	 * @return
+	 * @throws Exception
+	 */
+	public Compartment getCompartment(String compartmentName) throws Exception {
+		ListCompartmentsResponse listCompartmentsResponse = null;
+		ListCompartmentsRequest lcr = ListCompartmentsRequest.builder().compartmentId(tenantOCID)
+				.accessLevel(ListCompartmentsRequest.AccessLevel.Accessible).compartmentIdInSubtree(Boolean.TRUE)
+				.build();
 
-    /**
-     * close client instances
-     */
-    public void close() {
-        if (fnMgtClient != null) {
-            fnMgtClient.close();
-        }
+		listCompartmentsResponse = identityClient.listCompartments(lcr);
 
-        if (identityClient != null) {
-            identityClient.close();
-        }
+		for (Compartment comp : listCompartmentsResponse.getItems()) {
+			if (comp.getName().equals(compartmentName)) {
+				return comp;
+			}
+		}
+		throw new Exception("Could not find compartment with name " + compartmentName + " in tenancy " + tenantOCID);
+	}
 
-        if (fnInvokeClient != null) {
-            fnInvokeClient.close();
-        }
-    }
+	/**
+	 * close client instances
+	 */
+	public void close() {
+		if (fnMgtClient != null) {
+			fnMgtClient.close();
+		}
+
+		if (identityClient != null) {
+			identityClient.close();
+		}
+
+		if (fnInvokeClient != null) {
+			fnInvokeClient.close();
+		}
+	}
 
 }
