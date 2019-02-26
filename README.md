@@ -14,7 +14,7 @@ OCI SDK exposes two endpoints for Oracle Functions
 
 Both these client objects as well as the `IdentityClient` are initialized in the constructor (details in the **Authentication** section)
 
-The `FunctionsInvokeClient` API requires the function OCID and the function invoke endpoint which needs to be extracted using the following - function name, application name, the compartment name and the tenant OCID. This involves making multiple API calls
+The `invokeFunction` method in `FunctionsInvokeClient` requires the function OCID and the function invoke endpoint which needs to be extracted using the following - function name, application name, the compartment name and the tenant OCID. This involves multiple API calls
 
 - The first step is to extract the Compartment OCID from the name using the `IdentityClient.listCompartments` method - it looks for compartments in the tenancy and matches the one with the provided name
 - The compartment OCID is then used to find the Application OCID from the name using `FunctionsManagementClient.listApplications`
