@@ -101,7 +101,7 @@ public class FunctionsUtil {
      * @return
      * @throws Exception 
      */
-    public String getAppOCID(String appName, String compartmentName) throws Exception {
+    private String getAppOCID(String appName, String compartmentName) throws Exception {
 
         //start by finding the compartment OCID from the name
         String compOCID = getCompartmentOCID(compartmentName);
@@ -131,7 +131,7 @@ public class FunctionsUtil {
      * @return
      * @throws Exception 
      */
-    public String getCompartmentOCID(String compartmentName) throws Exception {
+    private String getCompartmentOCID(String compartmentName) throws Exception {
         System.out.println("Finding OCID for Compartment " + compartmentName);
         String compOCID = null;
         ListCompartmentsResponse listCompartmentsResponse = null;
