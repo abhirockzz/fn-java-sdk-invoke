@@ -1,6 +1,13 @@
+/***
+ * @author abhirockzz
+ * @author shaunsmith
+ */
+
 package com.test.fn;
 
+import com.oracle.bmc.functions.model.ApplicationSummary;
 import com.oracle.bmc.functions.model.FunctionSummary;
+import com.oracle.bmc.identity.model.Compartment;
 
 public class MainClient {
 
@@ -18,8 +25,10 @@ public class MainClient {
         String privateKeyFile = System.getenv("PRIVATE_KEY_LOCATION");
         String passphrase = System.getenv("PASSPHRASE");
 
-        if (tenantOCID == null || userId == null || fingerprint == null || privateKeyFile == null /*|| passphrase == null*/) {
-            throw new Exception("Please ensure you have set the mandatory environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION");
+        if (tenantOCID == null || userId == null || fingerprint == null
+                || privateKeyFile == null /* || passphrase == null */) {
+            throw new Exception(
+                    "Please ensure you have set the mandatory environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION");
         }
 
         String compartmentName = args[0];
@@ -27,23 +36,14 @@ public class MainClient {
         String funcName = args[2];
         String invokePayload = args.length == 4 ? args[3] : "";
 
-        FunctionsUtil util = null;
-        try {
-            util = new FunctionsUtil(tenantOCID, userId, fingerprint, privateKeyFile, passphrase);
-            FnInvokeExample test = new FnInvokeExample(tenantOCID, userId, fingerprint, privateKeyFile, passphrase);
-
-            FunctionSummary function = util.getFunction(compartmentName, appName, funcName);
-            String functionId = function.getId();
-            String invokeEndpoint = function.getInvokeEndpoint();
-            System.out.println("Invoking function " + funcName + " from app " + appName + " in compartment " + compartmentName + " from tenancy " + tenantOCID);
-
-            test.invokeFunction(functionId, invokeEndpoint, invokePayload);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (util != null) {
-                util.close();
-            }
+        try (FunctionsUtil functionsUtil = new FunctionsUtil(tenantOCID, userId, fingerprint, privateKeyFile,
+                passphrase);) {
+            Compartment compartment = functionsUtil.getCompartment(compartmentName);
+            ApplicationSummary application = functionsUtil.getApplication(compartment, appName);
+            FunctionSummary function = functionsUtil.getFunction(application, funcName);
+            System.err.println("Invoking function " + funcName + " from app " + appName + " in compartment "
+                    + compartmentName + " from tenancy " + tenantOCID);
+            functionsUtil.invokeFunction(function, invokePayload);
         }
 
     }

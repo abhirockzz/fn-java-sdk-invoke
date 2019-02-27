@@ -1,68 +1,107 @@
 # Invoke Oracle Functions using the OCI Java SDK
 
-This example demonstrates how to invoke a function on Oracle Functions using (preview version of) the Oracle Cloud Infrastructure Java SDK. 
+This example demonstrates how to invoke a function on Oracle Functions using
+(a preview version of) the Oracle Cloud Infrastructure Java SDK. 
 
 
 ## Introduction
 
-To be specifc, it shows how you can invoke a function by its name given that you also provide the application name (to which the function belongs), the OCI compartment (for which your Oracle Functions service is configured) and the OCID of your tenancy.
+To be specifc, it shows how you can invoke a function by its name along with the
+name of the application name it belongs to, the OCI compartment containing the
+application, and the OCID of your tenancy.
 
-OCI SDK exposes two endpoints for Oracle Functions
+The OCI SDK exposes two endpoints specificially for Oracle Functions
 
-- `FunctionsManagementClient` - for CRUD operations e.g. creating applications, listing functions etc.
-- `FunctionsInvokeClient` - only required for invoking a function
+- `FunctionsManagementClient` - for CRUD operations e.g., creating applications,
+  listing functions etc.
+- `FunctionsInvokeClient` - required for invoking functions
 
-Both these client objects as well as the `IdentityClient` are initialized in the constructor (details in the **Authentication** section)
+along with a number of wrapper/handle objects like `FunctionSummary`,
+`ApplicationSummary`, and `Compartment`.
+ 
+The `invokeFunction` method in `FunctionsUtils` takes a `FunctionSummary` for a
+given function, the desired payload, and uses a `FunctionsInvokeClient` to
+actually invoke the function.  This seems relatively straightforward but
+obtaining a `FunctionSummary` requires navigating from the OCI compartment, to
+the application, to the function.  This involves multiple lookups (API calls).
 
-The `invokeFunction` method in `FunctionsInvokeClient` requires the function OCID and the function invoke endpoint which needs to be extracted using the following - function name, application name, the compartment name and the tenant OCID. This involves multiple API calls
+To illustrate the steps, the `FunctionsUtils` class provides a number of methods
+that capture the steps required to navigate the OCI object model
 
-- The first step is to extract the Compartment OCID from the name using the `IdentityClient.listCompartments` method - it looks for compartments in the tenancy and matches the one with the provided name
-- The compartment OCID is then used to find the Application OCID from the name using `FunctionsManagementClient.listApplications`
-- Once we have the application OCID, the function information (in the form of a `FunctionSummary` object) is extracted using `FunctionsManagementClient.listFunctions` - this allows us to get both the function OCID as well as its invoke endpoint
+- `getCompartment(compartmentName)` returns a Compartment with a given name
+  using the `IdentityClient.listCompartments` method - it looks for compartments
+  in the tenancy with the provided name
+- `getApplication(compartment, appName)` searches in the specified compartment
+  for the named application using the
+  `FunctionsManagementClient.listApplications` method
+- `getFunction(application, funcName)` searches in the specified application for
+  the named function using the `FunctionsManagementClient.listFunctions` method.
+  The result is a `FunctionSummary` object which provides the function ID, name,
+  and invoke endpoint
 
-The key thing to note here is that the function ID and its invoke endpoint will not change unless you delete the function (or the application it's a part of). As a result you do not need to repeat the above mentioned flow of API calls - the funtion ID and its invoke endpoint can be derived once and then **cached** in-memory (e.g. `HashMap`) or using an external data store
+The key thing to note here is that the function ID and its invoke endpoint will
+not change unless you delete the function (or the application it's a part of).
+As a result you do not need to repeat the above mentioned flow of API calls -
+the function ID and its invoke endpoint can be derived once and then **cached**
+in-memory (e.g. `HashMap`) or using an external data store.
 
-Now that we have the function OCID and invoke enpoint at our disposal
+Once we have a `FunctionSummary` (containing function OCID and invoke enpdoint)
+at our disposal we can use the 
+`FunctionsUtils.invokeFunction(function,payload)` method which: 
 
-- we build the `InvokeFunctionRequest` object with the function OCID and the (optional) payload which we want to send to our function, and,
-- call `setEndpoint` in our `FunctionsInvokeClient` object to point it towards the invoke endpoint
-- finally, we call `invokeFunction` and extract the String response from the `InvokeFunctionResponse` object
+- builds an `InvokeFunctionRequest` object with the function OCID and the
+  (optional) payload which we want to send to our function
+- calls `setEndpoint` in our `FunctionsInvokeClient` object to point it to the
+  service endpoint
+- and finally, calls `FunctionsInvokeClient.invokeFunction` with the
+  `InvokeFunctionRequest`returning the String response from the resulting
+  `InvokeFunctionResponse` object
 
 ### Authentication
 
-The client program needs to authenticate to OCI before being able to make service calls. The standard OCI authenitcation is used, which accepts the following inputs (details below) - tenant OCID, user OCID, fingerprint, private key and passphrase (optional). These details are required to instantiate a `SimpleAuthenticationDetailsProvider` object which is subsequently used by the service client objects (`FunctionsInvokeClient`, `FunctionsManagementClient`, `IdentityClient`). 
+Functions clients need to authenticate with OCI before being able to make
+service calls. The example uses standard OCI authenitcation which accepts the
+following inputs (details below) - tenant OCID, user OCID, fingerprint, private
+key and passphrase (optional). These details are required to instantiate a
+`SimpleAuthenticationDetailsProvider` object which is subsequently used by the
+service client objects (`FunctionsInvokeClient`, `FunctionsManagementClient`,
+`IdentityClient`). 
 
-This example does not assume the presence of an OCI config file on the machine from where this is being executed. However, if you have one present as per the standard OCI practices i.e. a config file in your home directory, you can use the `ConfigFileAuthenticationDetailsProvider` for convenience
+This example does not assume the presence of an OCI config file on the machine
+it is executing on. However, if you have one present as per the standard OCI
+practices i.e., a config file in your home directory, you can use the
+`ConfigFileAuthenticationDetailsProvider` for convenience
 
 ## Pre-requisites
 
 1. Install/update the Fn CLI
 
-   `curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh`
+   `curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install |
+   sh`
 
 2. Create a function to invoke
 
-   Create a function using [Go Hello World Function](https://github.com/abhirockzz/oracle-functions-hello-worlds/blob/master/golang-hello-world.md)
+   Create a function using [Go Hello World
+   Function](https://github.com/abhirockzz/oracle-functions-hello-worlds/blob/master/golang-hello-world.md)
 
 ### Install preview OCI Java SDK
 
-As this example uses Maven, you need to install the OCI SDK JAR to your local Maven repository.
+As this example uses Maven, you need to install the OCI SDK JAR to your local
+Maven repository.
 
 1. Download and unzip the preview version of the OCI Java SDK
 
    `unzip oci-java-sdk-dist-1.4.1-preview1-20190222.223049-5.zip`
 
-2. Set the name of the SDK JAR as an environment variable
-
-   `export OCI_SDK_JAR=oci-java-sdk-full-1.4.1-preview1-SNAPSHOT.jar`
-
-3. Change into the correct directory
+2. Change into the correct directory
 
    `cd oci-java-sdk-dist-1.4.1-preview1-20190222.223049-5`
 
-4. Install the JAR to local Maven repo
+3. Install the JAR to local Maven repo
 
-   `mvn install:install-file -Dfile=lib/$OCI_SDK_JAR -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.4.1-preview1-20190222.223049-5 -Dpackaging=jar`
+   `mvn install:install-file -Dfile=lib/oci-java-sdk-full-1.4.1-preview1-SNAPSHOT.jar
+   -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk \
+   -Dversion=1.4.1-preview1-20190222.223049-5 -Dpackaging=jar`
 
 ### Build the JAR and configure environment variables
 
@@ -76,7 +115,7 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
 
 3. Then build the JAR using 
 
-   `mvn clean install`
+   `mvn clean package`
 
 4. Set environment variables
 
@@ -87,12 +126,13 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
    export PRIVATE_KEY_LOCATION=<location of the private key on your machine>
    ```
 
-   > please note that `PASSPHRASE` is optional i.e. only required if your private key has one
+   > please note that `PASSPHRASE` is optional i.e. only required if your
+   > private key has one
 
    ```shell
    export PASSPHRASE=<private key passphrase>
    ```
-   
+
    e.g.
 
    ```shell
@@ -110,26 +150,42 @@ As this example uses Maven, you need to install the OCI SDK JAR to your local Ma
 
 ## You can now invoke your function!
 
-`java -jar target/<jar-name>.jar <compartment-name> <app-name> <function-name> <optional-payload>`
+`java -jar target/<jar-name>.jar <compartment-name> <app-name> <function-name>
+<optional-payload>`
 
-> Payload is optional. If your function doesn't expect any input parameters, you can omit the <optional-payload>
+> Payload is optional. If your function doesn't expect any input parameters, you
+> can omit the <optional-payload>
 
 e.g. with payload:
 
-`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment helloworld-app helloworld-func-go {\"name\":\"foobar\"}`
+`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment
+helloworld-app helloworld-func-go '{"name":"foobar"}'`
 
 e.g. without payload:
 
-`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment helloworld-app helloworld-func-go`
+`java -jar target/fn-java-sdk-invoke-1.0-SNAPSHOT.jar mycompartment
+helloworld-app helloworld-func-go`
 
 
 ## What if my function needs input in binary form ?
 
-This example demonstrates how to invoke a boilerplate function which accepts (an optional) string payload (JSON data). But, it is possible to send binary payload as well.
+This example demonstrates how to invoke a boilerplate function which accepts (an
+optional) string payload (JSON data). But, it is possible to send binary payload
+as well.
 
-You can use this Tensorflow based function as an example to explore the possibility of invoking a function using binary content - https://github.com/abhirockzz/fn-hello-tensorflow. This function expects the image data (in binary form) as an input and returns what object that image resembles along with the percentage accuracy
+You can use this Tensorflow based function as an example to explore the
+possibility of invoking a function using binary content -
+https://github.com/abhirockzz/fn-hello-tensorflow. This function expects the
+image data (in binary form) as an input and returns what object that image
+resembles along with the percentage accuracy
 
-If you were to deploy the Tensorflow function, the command to invoke it using Fn CLI would be something like this - `cat /home/foo/cat.jpeg | fn invoke fn-tensorflow-app classify`. In this case, the `cat.jpeg` image is being passed as an input to the function. The programmatic (using Java SDK) equivalent of this would look something like the below snippet, where the function invocation request (`InvokeFunctionRequest`) is being built along with the binary input (image file content)
+If you were to deploy the Tensorflow function, the command to invoke it using Fn
+CLI would be something like this - `cat /home/foo/cat.jpeg | fn invoke
+fn-tensorflow-app classify`. In this case, the `cat.jpeg` image is being passed
+as an input to the function. The programmatic (using Java SDK) equivalent of
+this would look something like the below snippet, where the function invocation
+request (`InvokeFunctionRequest`) is being built along with the binary input
+(image file content)
 
 ```java
 InvokeFunctionRequest invokeFunctionRequest = 
@@ -140,32 +196,52 @@ InvokeFunctionRequest.builder()
                      .build();
 ```
 
-Pay attention to the following line `invokeFunctionBody(StreamUtils.toInputStream(new File("/home/foo/cat.jpeg")))`. The `toInputStream` helper method from `com.oracle.bmc.util.StreamUtils` is being used to send the binary contents of file `/home/foo/cat.jpeg`
+Pay attention to the following line
+`invokeFunctionBody(StreamUtils.toInputStream(new File("/home/foo/cat.jpeg")))`.
+The `toInputStream` helper method from `com.oracle.bmc.util.StreamUtils` is
+being used to send the binary contents of file `/home/foo/cat.jpeg`
 
 
 ## Troubleshooting
 
 1. If you fail to set the required environment variables like `TENANT_OCID` etc.
 
-   You will see the following error - `Exception in thread "main" java.lang.Exception: Please ensure you have set the mandatory environment variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT, PRIVATE_KEY_LOCATION`
+   You will see the following error - `Exception in thread "main"
+   java.lang.Exception: Please ensure you have set the mandatory environment
+   variables - TENANT_OCID, USER_OCID, PUBLIC_KEY_FINGERPRINT,
+   PRIVATE_KEY_LOCATION`
 
 2.  If you do not provide required arguments i.e. function name etc.
 
-   You will see the following error - `Exception in thread "main" java.lang.Exception: Usage: java -jar <jar-name>.jar <function name> <app name> <compartment name> <function invoke payload>`
+   You will see the following error - `Exception in thread "main"
+   java.lang.Exception: Usage: java -jar <jar-name>.jar <function name> <app
+   name> <compartment name> <function invoke payload>`
 
 3. If you provide an invalid value for function name etc.
 
-   You will see something similar to - `Exception in thread "main" java.lang.Exception: Could not find function with name test-function in application test-app`
+   You will see something similar to - `Exception in thread "main"
+   java.lang.Exception: Could not find function with name test-function in
+   application test-app`
 
-4. If you provide an incorrect `TENANT_OCID` or `USER_OCID` or `PUBLIC_KEY_FINGERPRINT`
+4. If you provide an incorrect `TENANT_OCID` or `USER_OCID` or
+   `PUBLIC_KEY_FINGERPRINT`
 
-   You will get this error - `Exception in thread "main" com.oracle.bmc.model.BmcException: (401, NotAuthenticated, false) The required information to complete authentication was not provided or was incorrect. (opc-request-id: 974452A5243XXXXX77194672D650/37DFE2AEXXXXXXX20ADFEB2E43/48B235F1D7XXXXXX273CFB889)`
+   You will get this error - `Exception in thread "main"
+   com.oracle.bmc.model.BmcException: (401, NotAuthenticated, false) The
+   required information to complete authentication was not provided or was
+   incorrect. (opc-request-id:
+   974452A5243XXXXX77194672D650/37DFE2AEXXXXXXX20ADFEB2E43/48B235F1D7XXXXXX273CFB889)`
 
-5. If your key has a passphrase but you failed to set the environment variable PASSPHRASE
+5. If your key has a passphrase but you failed to set the environment variable
+   PASSPHRASE
 
-   You will get this error - `Exception in thread "main" java.lang.NullPointerException: The provided private key requires a passphrase`
+   You will get this error - `Exception in thread "main"
+   java.lang.NullPointerException: The provided private key requires a
+   passphrase`
 
-6. If your key has a passphrase but you set an incorrect value in the environment variable PASSPHRASE
+6. If your key has a passphrase but you set an incorrect value in the
+   environment variable PASSPHRASE
 
-   You will get this error - `Exception in thread "main" java.lang.IllegalArgumentException: The provided passphrase is incorrect.`
+   You will get this error - `Exception in thread "main"
+   java.lang.IllegalArgumentException: The provided passphrase is incorrect.`
 
