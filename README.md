@@ -99,9 +99,7 @@ Maven repository.
 
 3. Install the JAR to local Maven repo
 
-   `mvn install:install-file -Dfile=lib/oci-java-sdk-full-1.4.1-preview1-SNAPSHOT.jar
-   -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk \
-   -Dversion=1.4.1-preview1-20190222.223049-5 -Dpackaging=jar`
+   `mvn install:install-file -Dfile=lib/oci-java-sdk-full-1.4.1-preview1-SNAPSHOT.jar -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.4.1-preview1-20190222.223049-5 -Dpackaging=jar`
 
 ### Build the JAR and configure environment variables
 
