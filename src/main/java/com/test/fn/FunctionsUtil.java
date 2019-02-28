@@ -43,7 +43,7 @@ public class FunctionsUtil implements AutoCloseable {
     private FunctionsInvokeClient fnInvokeClient;
 
     /**
-     * Initializes FunctionsManagementClient and IdentityClient
+     * Initializes FunctionsManagementClient, FunctionsInvokeClient and IdentityClient instances
      * 
      * @param tenantId
      * @param userId
@@ -73,12 +73,11 @@ public class FunctionsUtil implements AutoCloseable {
     }
 
     /**
-     * Invokes a function with the given payload
+     * Invokes a function
      * 
-     * @param functionId
-     * @param invokeEndpoint
+     * @param function
      * @param payload
-     * @throws Exception
+     * @throws Exception 
      */
     public void invokeFunction(FunctionSummary function, String payload) throws Exception {
         try {
@@ -109,8 +108,6 @@ public class FunctionsUtil implements AutoCloseable {
             System.err.print("Response from function - " + respString + "\n");
         } catch (Exception e) {
             throw e;
-        } finally {
-            fnInvokeClient.close();
         }
     }
 
@@ -185,12 +182,10 @@ public class FunctionsUtil implements AutoCloseable {
 
     /**
      * Gets application info
-     * 
+     * @param compartment
      * @param appName
-     * @param compartmentName
-     * 
      * @return
-     * @throws Exception
+     * @throws Exception 
      */
     public ApplicationSummary getApplication(Compartment compartment, String appName) throws Exception {
 
@@ -208,7 +203,7 @@ public class FunctionsUtil implements AutoCloseable {
     }
 
     /**
-     * Gets compartment OCID
+     * Gets compartment info
      * 
      * @param compartmentName
      * @return
@@ -233,6 +228,7 @@ public class FunctionsUtil implements AutoCloseable {
     /**
      * close client instances
      */
+    @Override
     public void close() {
         if (fnMgtClient != null) {
             fnMgtClient.close();
