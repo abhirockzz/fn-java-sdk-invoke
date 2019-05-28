@@ -15,7 +15,7 @@
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk</artifactId>
-            <version>1.4.1-preview1-SNAPSHOT</version>
+            <version>1.5.7-preview1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

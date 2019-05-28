@@ -91,15 +91,15 @@ Maven repository.
 
 1. Download and unzip the preview version of the OCI Java SDK
 
-   `unzip oci-java-sdk-dist-1.4.1-preview1-20190222.223049-5.zip`
+        unzip oci-java-sdk-dist-1.5.7-preview1-20190524.232748-4.zip
 
 2. Change into the correct directory
 
-   `cd oci-java-sdk-dist-1.4.1-preview1-20190222.223049-5`
+        cd oci-java-sdk-dist-1.5.7-preview1-20190524.232748-4
 
 3. Install the JAR to local Maven repo
 
-   `mvn install:install-file -Dfile=lib/oci-java-sdk-full-1.4.1-preview1-SNAPSHOT.jar -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.4.1-preview1-20190222.223049-5 -Dpackaging=jar`
+        mvn install:install-file -Dfile=lib/oci-java-sdk-full-1.5.7-preview1-SNAPSHOT.jar -DgroupId=com.oracle.oci.sdk -DartifactId=oci-java-sdk -Dversion=1.5.7-preview1-20190524.232748-4 -Dpackaging=jar
 
 ### Build the JAR and configure environment variables
 
